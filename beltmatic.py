@@ -108,7 +108,21 @@ class FindNum:
 
         
 
-
+class displayObject:
+    storedValue=NotImplemented
+    displayString=''
+    def __init__(self, VALUE, DISPLAY) -> None:
+        self.storedValue = VALUE
+        self.displayString = DISPLAY
+    def __str__(self):
+        message = 20*'+'
+        if(type(self.storedValue)==list):
+            message+=self.displayString+'/n'
+            message+='List/n'
+            for i in range(len(self.storedValue)):
+                message+=f"[{i}] - {self.storedValue[i]}\n"
+            
+        pass
 
 mainGoal = FindNum(4626)
 
