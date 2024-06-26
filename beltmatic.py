@@ -59,11 +59,14 @@ class FindNum:
         print('key * value')
         for k,v in self.divs.items():
             print('['+str(k)+'] * '+str(v))
-        keySelection = int(input('select key: '))
-        
-        valueSelection = self.divs.get(keySelection)
-        newEntry = [FindNum(keySelection), FindNum(valueSelection)]
-        return newEntry
+        while True:
+            try:
+                keySelection = int(input('select key: '))
+                valueSelection = self.divs.get(keySelection)
+                newEntry = [FindNum(keySelection), FindNum(valueSelection)]
+                return newEntry
+            except(KeyError):
+                print('Invalid entry, try again')
                 
     def setExp(self, expRange=20, exclusion=3000):
         exponents = {}
@@ -92,17 +95,22 @@ class FindNum:
             if(distance <= exclusion and mult!=1):
                 print('['+str(k)+'] '+str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
         
-        keySelection = int(input('select key: '))
-        value=self.exponents.get(keySelection)
-        mult = round(value**keySelection,2)
-        distance = abs(round(self.goal-mult))
-        createdArray = [FindNum(keySelection), FindNum(value), FindNum(distance)]
-        return createdArray
+        while True:
+            try:
+                keySelection = int(input('select key: '))
+                value=self.exponents.get(keySelection)
+                mult = round(value**keySelection,2)
+                distance = abs(round(self.goal-mult))
+                createdArray = [FindNum(keySelection), FindNum(value), FindNum(distance)]
+                return createdArray
+            except(KeyError):
+                print('invalid entry, try again')
+
         
 
 
 
-mainGoal = FindNum(2886)
+mainGoal = FindNum(4626)
 
 mainMenu = f"""
 {20*'#'}
@@ -148,11 +156,12 @@ def menu(saveValArray = []):
         currentIndex: {currentIndex}
         Selected Value: [{saveValValues[currentIndex]}]
         """)
+    invalid = True
     while True:
+        invalid=False
         printState()
 
         print(mainMenu)
-
         uInput = int(input('input menu option: '))
         match(uInput):
             case 0: # set current findNum
@@ -174,17 +183,26 @@ def menu(saveValArray = []):
                     print(f"~FindNum: {findVal}~")
                     FindNum(findVal)
                     print(findNumDescription)
-                    uInput = int(input('SUBMENU option: '))
-                    match(uInput):
-                        case 1: # div
-                            newEntry = saveValArray[currentIndex].selectDiv()
-                            saveValArray[currentIndex] = newEntry
-                        case 2: # exp
-                            newEntry = saveValArray[currentIndex].selectExp()
-                            saveValArray[currentIndex] = newEntry
-                        case 3: # exit
-                            print('--exit')
-                            return
+
+                    invalidInput = True
+                    while (invalidInput == True):
+                        uInput = int(input('SUBMENU option: '))
+                        invalidInput = False
+                        match(uInput):
+                            case 1: # div
+                                newEntry = saveValArray[currentIndex].selectDiv()
+                                saveValArray[currentIndex] = newEntry
+                            case 2: # exp
+                                newEntry = saveValArray[currentIndex].selectExp()
+                                saveValArray[currentIndex] = newEntry
+                            case 3: # exit
+                                print('--exit')
+                                return
+                            case _:
+                                print('invalid input')
+                                invalidInput = True
+                    
+                            
 
                     menu(saveValArray[currentIndex])
 
@@ -196,7 +214,7 @@ def menu(saveValArray = []):
                     if(type(item)!=list):
                         print( f"[{i}] {item.goal}")
                     else:
-                        print(f'Dive into {item}')
+                        print(f'[{i}] Dive into {item}')
                 currentIndex = int(input('Select Index: '))
                 
             case 3: # view all
@@ -210,6 +228,7 @@ def menu(saveValArray = []):
                 print('--default')
                 #default
                 print('default')
+                invalid = True
 
 saveValue = [mainGoal]
 saveIndex = 0
