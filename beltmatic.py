@@ -33,6 +33,7 @@ class FindNum:
         # not yet implemented
         self.getDivs()
         self.getExp(2000)
+        return str(self.goal)
 
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
@@ -117,12 +118,15 @@ class displayObject:
     def __str__(self):
         message = 20*'+'
         if(type(self.storedValue)==list):
-            message+=self.displayString+'/n'
-            message+='List/n'
+            message+=self.displayString+'\n'
+            message+='List\n'
             for i in range(len(self.storedValue)):
                 message+=f"[{i}] - {self.storedValue[i]}\n"
-            
-        pass
+
+        else:
+            message+=f"\n Value: {str(self.storedValue)}\n Display: {str(self.displayString)}"
+        return message
+
 
 mainGoal = FindNum(4626)
 
