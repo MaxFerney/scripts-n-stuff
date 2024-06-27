@@ -12,6 +12,31 @@ setExp(range)
 calculates all exponents leading to range
 
 ''')
+
+class displayObject:
+    storedValue=NotImplemented
+    displayString=''
+    def __init__(self, VALUE, DISPLAY) -> None:
+        self.storedValue = VALUE
+        self.displayString = DISPLAY
+    def __str__(self):
+        message = 20*'+'+'\n'
+        if(type(self.storedValue)==list):
+            message+=self.displayString+'\n'
+            message+='List\n'
+            for i in range(len(self.storedValue)):
+                message+=f"[{i}] - {self.storedValue[i]}\n"
+        elif(type(self.storedValue)==FindNum):
+
+            subMessage=f"""
+    FindNum({self.storedValue.goal})
+    
+"""
+            message+=subMessage
+        else:
+            message+=f"\n Value: {str(self.storedValue)}\n Display: {str(self.displayString)}"
+        return message
+
 global SavedNums
 class FindNum:
     goal = 0
@@ -37,7 +62,7 @@ class FindNum:
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
 
-    def setDivs(self, divRange=20):
+    def setDivs(self, divRange=20, noShow=True):
         divs = {}
         self.divRange = divRange
         for d in range(2,int(divRange)+1):
@@ -46,7 +71,8 @@ class FindNum:
                 divs[d] = int(v)
         
         self.divs = divs
-        self.getDivs()
+        if not noShow:
+            self.getDivs()
 ##        return divs
 
     def getDivs(self):
@@ -54,7 +80,7 @@ class FindNum:
         for k,v in self.divs.items():
             print(str(k)+' * '+str(v))
     
-    def selectDiv(self):
+    def selectDiv(self) -> list[displayObject]:
         self.printPretext('range: '+str(self.divRange))
         print('key * value')
         for k,v in self.divs.items():
@@ -63,19 +89,23 @@ class FindNum:
             try:
                 keySelection = int(input('select key: '))
                 valueSelection = self.divs.get(keySelection)
-                newEntry = [FindNum(keySelection), FindNum(valueSelection)]
+                newEntry = [ 
+                    displayObject(FindNum(keySelection),f'[{keySelection}]*{valueSelection}={self.goal}'), 
+                    displayObject(FindNum(valueSelection), f'{keySelection}*[{valueSelection}]={self.goal}')
+                ]
                 return newEntry
             except(KeyError):
                 print('Invalid entry, try again')
                 
-    def setExp(self, expRange=20, exclusion=3000):
+    def setExp(self, expRange=20, exclusion=3000, noShow=True):
         exponents = {}
         self.expRange = expRange
         for ex in range(2, int(expRange)+1):
             exponents[ex] = int(round(self.goal**(1./ex)))
 
         self.exponents = exponents
-        self.getExp(exclusion)
+        if not noShow:
+            self.getExp(exclusion)
 ##        return exponents
 
     def getExp(self, exclusion=3000):
@@ -86,14 +116,15 @@ class FindNum:
             if(distance <= exclusion and mult!=1):
                 print(str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
 
-    def selectExp(self, exclusion=3000):
+    def selectExp(self, exclusion=3000) -> list[displayObject]:
         self.printPretext('range: '+str(self.expRange)+', exclusion: '+str(exclusion))
         print('[key] value^key = result | remainder away')
         for k,v in self.exponents.items():
             mult = round(v**k,2)
             distance = abs(round(self.goal-mult))
             if(distance <= exclusion and mult!=1):
-                print('['+str(k)+'] '+str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
+                cryptidString = f'[{k}] {v}^{k} = {mult} | {distance} away'
+                print(cryptidString)
         
         while True:
             try:
@@ -101,30 +132,21 @@ class FindNum:
                 value=self.exponents.get(keySelection)
                 mult = round(value**keySelection,2)
                 distance = abs(round(self.goal-mult))
-                createdArray = [FindNum(keySelection), FindNum(value), FindNum(distance)]
-                return createdArray
+                # createdArray = [FindNum(keySelection), FindNum(value), FindNum(distance)]
+                newEntry = [ 
+                    displayObject(FindNum(value), f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
+                    displayObject(FindNum(keySelection),f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
+                    displayObject(FindNum(distance),f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
+                ]
+                return newEntry
             except(KeyError):
                 print('invalid entry, try again')
 
         
 
-class displayObject:
-    storedValue=NotImplemented
-    displayString=''
-    def __init__(self, VALUE, DISPLAY) -> None:
-        self.storedValue = VALUE
-        self.displayString = DISPLAY
-    def __str__(self):
-        message = 20*'+'
-        if(type(self.storedValue)==list):
-            message+=self.displayString+'/n'
-            message+='List/n'
-            for i in range(len(self.storedValue)):
-                message+=f"[{i}] - {self.storedValue[i]}\n"
-            
-        pass
 
-mainGoal = FindNum(4626)
+searchint = 4626
+mainGoal = displayObject(FindNum(searchint),f'The og object {searchint}')
 
 mainMenu = f"""
 {20*'#'}
@@ -159,7 +181,7 @@ def getValuesFromFindNumArray(findNumArray):
         printArray.append(findNumArray.goal)
     return printArray
 
-def menu(saveValArray = []):
+def menu(saveValArray:list[displayObject] = []):
     
     currentIndex = 0
 
@@ -183,17 +205,17 @@ def menu(saveValArray = []):
                 findVal = int(input('set current FindNum(input): '))
 
                 if(len(saveValArray)==0):
-                    saveValArray.append(FindNum( findVal) )
+                    saveValArray.append(displayObject(FindNum( findVal), f'InitiatorVal: {findVal}') )
                     currentIndex = len(saveValArray)-1
                 else:
-                    saveValArray[currentIndex] = FindNum(findVal)
+                    saveValArray[currentIndex] = displayObject(FindNum( findVal), f'InitiatorVal: {findVal}') 
                 
             case 1: # modify findNum
                 print('--modify findNum')
-                if(type(saveValArray[currentIndex])==list):
-                    menu(saveValArray[currentIndex]) # Dive into
-                else:
-                    findVal = saveValArray[currentIndex].goal #expand current
+                if(type(saveValArray[currentIndex])==list): # Dive into
+                    menu(saveValArray[currentIndex]) 
+                else: #expand current
+                    findVal = saveValArray[currentIndex].value.goal 
                     print(f"~FindNum: {findVal}~")
                     FindNum(findVal)
                     print(findNumDescription)
@@ -204,10 +226,13 @@ def menu(saveValArray = []):
                         invalidInput = False
                         match(uInput):
                             case 1: # div
-                                newEntry = saveValArray[currentIndex].selectDiv()
+                                # newEntry = saveValArray[currentIndex].selectDiv()
+
+                                newEntry = displayObject(saveValArray[currentIndex].selectDiv(), f'InitiatorVal: {findVal}')
                                 saveValArray[currentIndex] = newEntry
                             case 2: # exp
-                                newEntry = saveValArray[currentIndex].selectExp()
+                                # newEntry = saveValArray[currentIndex].selectExp()
+                                newEntry = displayObject(saveValArray[currentIndex].selectExp(), f'InitiatorVal: {findVal}')
                                 saveValArray[currentIndex] = newEntry
                             case 3: # exit
                                 print('--exit')
@@ -233,8 +258,10 @@ def menu(saveValArray = []):
                 
             case 3: # view all
                 print('--view all')
-                print(getValuesFromFindNumArray(saveValArray))
-                print(getValuesFromFindNumArray(saveValue))
+                # print(getValuesFromFindNumArray(saveValArray))
+                # print(getValuesFromFindNumArray(saveValue))
+                print(saveValArray)
+                print(saveValue)
             case 4: #exit
                 print('--exit')
                 return
@@ -248,9 +275,9 @@ saveValue = [mainGoal]
 saveIndex = 0
 
 
-print('-'*20+'\ncurrent save value: ',end='')
-print(getValuesFromFindNumArray(saveValue))
-print('save index: '+str(saveIndex))
+# print('-'*20+'\ncurrent save value: ',end='')
+# print(getValuesFromFindNumArray(saveValue))
+# print('save index: '+str(saveIndex))
 
 menu(saveValue)
     
