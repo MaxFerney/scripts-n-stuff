@@ -146,7 +146,7 @@ class FindNum:
 
 
 searchint = 4626
-mainGoal = displayObject(FindNum(searchint),f'The og object {searchint}')
+mainGoal = FindNum(searchint)
 
 mainMenu = f"""
 {20*'#'}
@@ -181,16 +181,17 @@ def getValuesFromFindNumArray(findNumArray):
         printArray.append(findNumArray.goal)
     return printArray
 
-def menu(saveValArray:list[displayObject] = []):
+def menu(saveValArray:displayObject):
     
     currentIndex = 0
 
     def printState():
-        saveValValues = getValuesFromFindNumArray(saveValArray)
+        
         print(f"""
-        Save Val Values: {saveValValues}
+        Save Title: {str(saveValArray.displayString)}
+        Save Val Values: {str(saveValArray.storedValue)}
         currentIndex: {currentIndex}
-        Selected Value: [{saveValValues[currentIndex]}]
+        Selected Value: [{saveValArray.storedValue[currentIndex].goal}]
         """)
     invalid = True
     while True:
@@ -271,7 +272,7 @@ def menu(saveValArray:list[displayObject] = []):
                 print('default')
                 invalid = True
 
-saveValue = [mainGoal]
+saveValue = displayObject([mainGoal],f'The og object {mainGoal.goal}')
 saveIndex = 0
 
 
