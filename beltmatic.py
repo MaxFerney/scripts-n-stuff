@@ -47,17 +47,21 @@ class FindNum:
     savedNums = []
     # [2, [2, 5], [7, 2, 1]]
     
-    def __init__(self, goal):
+    def __init__(self, goal, storeMsg=''):
         self.goal = int(goal)
         searchVal = goal//2
         self.setDivs(int(searchVal))
         self.setExp(int(searchVal), 200)
+        self.storeMsg = storeMsg
 
 
     def __str__(self):
         # not yet implemented
         self.getDivs()
         self.getExp(2000)
+        return f'''
+    FindNum Object ({self.goal})
+'''
 
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
@@ -138,7 +142,7 @@ class FindNum:
                     displayObject(FindNum(keySelection),f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
                     displayObject(FindNum(distance),f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
                 ]
-                return newEntry
+                return displayObject(newEntry, f'Wrapper {value} ^ {keySelection} = {mult} ({distance} away from {self.goal})')
             except(KeyError):
                 print('invalid entry, try again')
 
@@ -191,7 +195,7 @@ def menu(saveValArray:displayObject):
         Save Title: {str(saveValArray.displayString)}
         Save Val Values: {str(saveValArray.storedValue)}
         currentIndex: {currentIndex}
-        Selected Value: [{saveValArray.storedValue[currentIndex].goal}]
+        Selected Value: [{saveValArray}]
         """)
     invalid = True
     while True:
@@ -201,22 +205,24 @@ def menu(saveValArray:displayObject):
         print(mainMenu)
         uInput = int(input('input menu option: '))
         match(uInput):
+            # WRITE
             case 0: # set current findNum
                 print('--set current findNum')
                 findVal = int(input('set current FindNum(input): '))
-
-                if(len(saveValArray)==0):
-                    saveValArray.append(displayObject(FindNum( findVal), f'InitiatorVal: {findVal}') )
-                    currentIndex = len(saveValArray)-1
-                else:
-                    saveValArray[currentIndex] = displayObject(FindNum( findVal), f'InitiatorVal: {findVal}') 
-                
+                # if(type(saveValArray)==displayObject) and (type(saveValArray.storedValue)==list):
+                    
+                # if(len(saveValArray)==0):
+                #     saveValArray.append(displayObject(FindNum( findVal), f'InitiatorVal: {findVal}') )
+                #     currentIndex = len(saveValArray)-1
+                # else:
+                saveValArray.storedValue[currentIndex] = displayObject(FindNum(findVal), f'InitiatorVal: {findVal}') 
+            # MODIFY/UPDATE
             case 1: # modify findNum
                 print('--modify findNum')
-                if(type(saveValArray[currentIndex])==list): # Dive into
-                    menu(saveValArray[currentIndex]) 
+                if(type(saveValArray.storedValue[currentIndex])==list): # Dive into
+                    menu(displayObject(saveValArray[currentIndex])) 
                 else: #expand current
-                    findVal = saveValArray[currentIndex].value.goal 
+                    findVal = saveValArray.storedValue[currentIndex].goal
                     print(f"~FindNum: {findVal}~")
                     FindNum(findVal)
                     print(findNumDescription)
@@ -229,12 +235,12 @@ def menu(saveValArray:displayObject):
                             case 1: # div
                                 # newEntry = saveValArray[currentIndex].selectDiv()
 
-                                newEntry = displayObject(saveValArray[currentIndex].selectDiv(), f'InitiatorVal: {findVal}')
-                                saveValArray[currentIndex] = newEntry
+                                newEntry = displayObject(saveValArray.storedValue[currentIndex].selectDiv(), f'InitiatorVal: {findVal}')
+                                saveValArray.storedValue[currentIndex] = newEntry
                             case 2: # exp
                                 # newEntry = saveValArray[currentIndex].selectExp()
-                                newEntry = displayObject(saveValArray[currentIndex].selectExp(), f'InitiatorVal: {findVal}')
-                                saveValArray[currentIndex] = newEntry
+                                newEntry = displayObject(saveValArray.storedValue[currentIndex].selectExp(), f'InitiatorVal: {findVal}')
+                                saveValArray.storedValue[currentIndex] = newEntry
                             case 3: # exit
                                 print('--exit')
                                 return
@@ -244,14 +250,15 @@ def menu(saveValArray:displayObject):
                     
                             
 
-                    menu(saveValArray[currentIndex])
+                    menu(saveValArray.storedValue[currentIndex])
 
             case 2: # change index
                 print('--change index')
                 print('Current Values: ')
-                for i in range(len(saveValArray)):
-                    item = saveValArray[i]
-                    if(type(item)!=list):
+                
+                for i in range(len(saveValArray.storedValue)):
+                    item = saveValArray.storedValue[i]
+                    if(type(item.storedValue)!=list):
                         print( f"[{i}] {item.goal}")
                     else:
                         print(f'[{i}] Dive into {item}')
