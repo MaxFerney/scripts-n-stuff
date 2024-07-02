@@ -148,7 +148,7 @@ class displayObject:
         return message
 
 
-mainGoal = FindNum(4626)
+mainGoal = FindNum(4626, 'Goal/Base Number')
 
 mainMenu = f"""
 {20*'#'}
@@ -156,7 +156,7 @@ mainMenu = f"""
 [1] dive current findnum
 [2] set index
 [3] view all
-[4] Exit
+[4] Exit (Go Up)
 
 """
 
@@ -164,7 +164,8 @@ findNumDescription = f"""
 {30*'#'}
 [1] select div
 [2] select exp
-[3] exit
+[3] exit (go back)
+[4] print all
 
 """
 
@@ -186,19 +187,16 @@ def getValuesFromFindNumArray(findNumArray):
 
 def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
     nestIndent = '\t'*nestLevel
-    singlePrintString = f"""
-{nestIndent}------------
+    singlePrintString = f"""{nestIndent}------------
 {nestIndent}Goal: {findNumObject.goal}
 {nestIndent}Equation Part: {findNumObject.equationPart}
-{nestIndent}------------
-"""
+{nestIndent}------------"""
     
     if(findNumObject.locked):
         subArrayMessage = ''
         for fNum in findNumObject.diveList:
             subArrayMessage += f"{formatStringForFindnum(fNum,nestLevel+1)}\n"
-        divePrintString = f"""
-{nestIndent}++++++++++++++++++++++++++++++++
+        divePrintString = f"""{nestIndent}++++++++++++++++++++++++++++++++
 {nestIndent}Goal: {str(findNumObject.goal)}
 {nestIndent}Equation Part: {findNumObject.equationPart}
 {nestIndent}Dive Message: {findNumObject.diveMessage}
@@ -207,22 +205,24 @@ def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
 {nestIndent}{subArrayMessage}
 {nestIndent}^^^^^^^^^^^^^^^^^
 {nestIndent}
-{nestIndent}++++++++++++++++++++++++++++++++
-"""
+{nestIndent}++++++++++++++++++++++++++++++++"""
         return divePrintString
     return singlePrintString
-def menu(saveValArray = []):
+def menu(baseFindNum:FindNum):
     
     currentIndex = 0
 
     def printState():
-        saveValValues = getValuesFromFindNumArray(saveValArray)
+        if(baseFindNum.locked):
+            diveList = baseFindNum.diveList
+        else:
+            diveList = [baseFindNum]
         print(f"""
-        Save Val Values: {saveValValues}
+        Main Object:{formatStringForFindnum(baseFindNum)}
         currentIndex: {currentIndex}
-        Selected Value: [{saveValValues[currentIndex]}]
+        Selected Value: [{diveList[currentIndex]}]
+        Selected Equation: [{diveList[currentIndex].equationPart}] 
         """)
-        if(saveValArray[currentIndex].locked):
 
     
     invalid = True
@@ -241,63 +241,74 @@ def menu(saveValArray = []):
                         
 
                 findVal = int(input('set current FindNum(input): '))
-                
-                if(len(saveValArray)==0):
-                    saveValArray.append(FindNum(findVal, f'BASE goal {findVal}') )
-                    currentIndex = len(saveValArray)-1
-                else:
-                    saveValArray[currentIndex] = FindNum(findVal)
+                baseFindNum = FindNum(findVal, 'Overwrote Current Findnum')
+                # if(not baseFindNum.locked):
+                #     saveValArray.append(FindNum(findVal, f'BASE goal {findVal}') )
+                #     currentIndex = len(saveValArray)-1
+                # else:
+                #     saveValArray[currentIndex] = FindNum(findVal)
                 
             case 1: # modify findNum
                 print('--modify findNum')
-                if(type(saveValArray[currentIndex])==list): #deprecating now
-                    menu(saveValArray[currentIndex]) # Dive into
-                else:
-                    findVal = saveValArray[currentIndex].goal #expand current
-                    print(f"~FindNum: {findVal}~")
-                    FindNum(findVal)
-                    print(findNumDescription)
+                # if(type(saveValArray[currentIndex])==list): #deprecating now
+                #     menu(saveValArray[currentIndex]) # Dive into
+                # if(baseFindNum.locked):
+                #     menu(baseFindNum.diveList[currentIndex]) # Dive into
+                # else:
+                findVal = baseFindNum.goal #expand current
+                print(f"~FindNum: {findVal}~")
+                FindNum(findVal)
+                
 
-                    invalidInput = True
-                    while (invalidInput == True):
-                        uInput = int(input('SUBMENU option: '))
-                        invalidInput = False
-                        match(uInput):
-                            case 1: # div
-                                newEntry = saveValArray[currentIndex].selectDiv()
-                                saveValArray[currentIndex].setDive(newEntry, 'dive divide message')
-                                
-                                # saveValArray[currentIndex] = newEntry
-                            case 2: # exp
-                                newEntry = saveValArray[currentIndex].selectExp()
-                                saveValArray[currentIndex].setDive(newEntry, 'dive exponent message')
-                            case 3: # exit
-                                print('--exit')
-                                return
-                            case _:
-                                print('invalid input')
-                                invalidInput = True
+                invalidInput = True
+                while (invalidInput == True):
+                    print(findNumDescription)
+                    uInput = int(input('SUBMENU option: '))
+                    invalidInput = False
+                    match(uInput):
+                        case 1: # div
+                            newEntry = baseFindNum.selectDiv()
+                            baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
+                            
+                            # saveValArray[currentIndex] = newEntry
+                        case 2: # exp
+                            newEntry = baseFindNum.selectExp()
+                            baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
+                        case 3: # exit
+                            print('--exit')
+                            return
+                        case 4: #print all
+                            print(formatStringForFindnum(baseFindNum))
+                            invalidInput = True
+                        case _:
+                            print('invalid input')
+                            invalidInput = True
                     
                             
 
-                    menu(saveValArray[currentIndex])
+                menu(baseFindNum.diveList[currentIndex])
 
             case 2: # change index
                 print('--change index')
-                print('Current Values: ')
-                for i in range(len(saveValArray)):
-                    item = saveValArray[i]
-                    if(type(item)!=list):
-                        print( f"[{i}] {item.goal}")
-                    else:
-                        print(f'[{i}] Dive into {item}')
-                currentIndex = int(input('Select Index: '))
+                if(not baseFindNum.locked):
+                    print('findNum not locked. please dive[1] or go up[4].')
+                    invalidInput = True
+                    continue
+                else:
+                    print('Current Values: ')
+                    for i in range(len(baseFindNum.diveList)):
+                        item = baseFindNum.diveList[i]
+                        if(item.locked):
+                            print( f"[{i}] {item.goal} eq: {item.equationPart}")
+                        else:
+                            print(f'[{i}] Dive into {item.goal}')
+                    currentIndex = int(input('Select Index: '))
                 
             case 3: # view all
                 print('--view all')
-                print(formatStringForFindnum(saveValue[0]))
-                print(getValuesFromFindNumArray(saveValArray))
-                print(getValuesFromFindNumArray(saveValue))
+                print(formatStringForFindnum(saveValue))
+                # print(getValuesFromFindNumArray(saveValArray))
+                # print(getValuesFromFindNumArray(saveValue))
             case 4: #exit
                 print('--exit')
                 return
@@ -307,12 +318,12 @@ def menu(saveValArray = []):
                 print('default')
                 invalid = True
 
-saveValue = [mainGoal]
+saveValue = mainGoal
 saveIndex = 0
 
 
 print('-'*20+'\ncurrent save value: ',end='')
-print(getValuesFromFindNumArray(saveValue))
+# print(getValuesFromFindNumArray(saveValue))
 print('save index: '+str(saveIndex))
 
 menu(saveValue)
