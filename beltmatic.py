@@ -21,17 +21,14 @@ class FindNum:
     expRange = 0
     diveList = []
     diveMessage = 'note when splitting number up'
-    basePart = 'this goal is part of a bigger number'
     equationPart = f'[6]*9 = 54'
     locked = False
     # [2, [2, 5], [7, 2, 1]]
     
     def __init__(self, 
                  goal, 
-                 basePart='this goal is part of a bigger number', 
                  equationPart='[6]*9 = 54'):
         self.goal = int(goal)
-        self.basePart = basePart
         self.equationPart = equationPart
 
         searchVal = goal//2
@@ -79,7 +76,10 @@ class FindNum:
             try:
                 keySelection = int(input('select key: '))
                 valueSelection = self.divs.get(keySelection)
-                newEntry = [FindNum(keySelection), FindNum(valueSelection)]
+                newEntry = [ 
+                    FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
+                    FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
+                ]
                 return newEntry
             except(KeyError):
                 print('Invalid entry, try again')
@@ -109,7 +109,8 @@ class FindNum:
             mult = round(v**k,2)
             distance = abs(round(self.goal-mult))
             if(distance <= exclusion and mult!=1):
-                print('['+str(k)+'] '+str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
+                cryptidString = f'[{k}] {v}^{k} = {mult} | {distance} away'
+                print(cryptidString)
         
         while True:
             try:
@@ -117,8 +118,12 @@ class FindNum:
                 value=self.exponents.get(keySelection)
                 mult = round(value**keySelection,2)
                 distance = abs(round(self.goal-mult))
-                createdArray = [FindNum(keySelection), FindNum(value), FindNum(distance)]
-                return createdArray
+                newEntry = [ 
+                    FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
+                    FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
+                    FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
+                ]
+                return newEntry
             except(KeyError):
                 print('invalid entry, try again')
 
@@ -180,15 +185,16 @@ def getValuesFromFindNumArray(findNumArray):
 
 
 def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
-    nestIndent = '\t'*4*nestLevel
+    nestIndent = '\t'*nestLevel
     singlePrintString = f"""
 {nestIndent}------------
 {nestIndent}Goal: {findNumObject.goal}
 {nestIndent}Equation Part: {findNumObject.equationPart}
 {nestIndent}------------
 """
-    subArrayMessage = ''
+    
     if(findNumObject.locked):
+        subArrayMessage = ''
         for fNum in findNumObject.diveList:
             subArrayMessage += f"{formatStringForFindnum(fNum,nestLevel+1)}\n"
         divePrintString = f"""
@@ -216,6 +222,9 @@ def menu(saveValArray = []):
         currentIndex: {currentIndex}
         Selected Value: [{saveValValues[currentIndex]}]
         """)
+        if(saveValArray[currentIndex].locked):
+
+    
     invalid = True
     while True:
         invalid=False
@@ -226,17 +235,22 @@ def menu(saveValArray = []):
         match(uInput):
             case 0: # set current findNum
                 print('--set current findNum')
-                findVal = int(input('set current FindNum(input): '))
+                # # handling for already expanded numbers.
+                # if(saveValArray[currentIndex].locked):
+                #     if(int(input('value locked. are you sure? [0=no,1=yes]'))!=1):
+                        
 
+                findVal = int(input('set current FindNum(input): '))
+                
                 if(len(saveValArray)==0):
-                    saveValArray.append(FindNum( findVal) )
+                    saveValArray.append(FindNum(findVal, f'BASE goal {findVal}') )
                     currentIndex = len(saveValArray)-1
                 else:
                     saveValArray[currentIndex] = FindNum(findVal)
                 
             case 1: # modify findNum
                 print('--modify findNum')
-                if(type(saveValArray[currentIndex])==list):
+                if(type(saveValArray[currentIndex])==list): #deprecating now
                     menu(saveValArray[currentIndex]) # Dive into
                 else:
                     findVal = saveValArray[currentIndex].goal #expand current
@@ -251,10 +265,12 @@ def menu(saveValArray = []):
                         match(uInput):
                             case 1: # div
                                 newEntry = saveValArray[currentIndex].selectDiv()
-                                saveValArray[currentIndex] = newEntry
+                                saveValArray[currentIndex].setDive(newEntry, 'dive divide message')
+                                
+                                # saveValArray[currentIndex] = newEntry
                             case 2: # exp
                                 newEntry = saveValArray[currentIndex].selectExp()
-                                saveValArray[currentIndex] = newEntry
+                                saveValArray[currentIndex].setDive(newEntry, 'dive exponent message')
                             case 3: # exit
                                 print('--exit')
                                 return
@@ -279,6 +295,7 @@ def menu(saveValArray = []):
                 
             case 3: # view all
                 print('--view all')
+                print(formatStringForFindnum(saveValue[0]))
                 print(getValuesFromFindNumArray(saveValArray))
                 print(getValuesFromFindNumArray(saveValue))
             case 4: #exit
