@@ -19,11 +19,21 @@ class FindNum:
     divRange = 0
     exponents = {}
     expRange = 0
-    savedNums = []
+    diveList = []
+    diveMessage = 'note when splitting number up'
+    basePart = 'this goal is part of a bigger number'
+    equationPart = f'[6]*9 = 54'
+    locked = False
     # [2, [2, 5], [7, 2, 1]]
     
-    def __init__(self, goal):
+    def __init__(self, 
+                 goal, 
+                 basePart='this goal is part of a bigger number', 
+                 equationPart='[6]*9 = 54'):
         self.goal = int(goal)
+        self.basePart = basePart
+        self.equationPart = equationPart
+
         searchVal = goal//2
         self.setDivs(int(searchVal))
         self.setExp(int(searchVal), 200)
@@ -34,6 +44,11 @@ class FindNum:
         self.getDivs()
         self.getExp(2000)
         return str(self.goal)
+    
+    def setDive(self, findNumArray, diveMessage):
+        self.diveMessage = diveMessage
+        self.diveList = findNumArray
+        self.locked = True
 
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
@@ -163,6 +178,33 @@ def getValuesFromFindNumArray(findNumArray):
         printArray.append(findNumArray.goal)
     return printArray
 
+
+def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
+    nestIndent = '\t'*4*nestLevel
+    singlePrintString = f"""
+{nestIndent}------------
+{nestIndent}Goal: {findNumObject.goal}
+{nestIndent}Equation Part: {findNumObject.equationPart}
+{nestIndent}------------
+"""
+    subArrayMessage = ''
+    if(findNumObject.locked):
+        for fNum in findNumObject.diveList:
+            subArrayMessage += f"{formatStringForFindnum(fNum,nestLevel+1)}\n"
+        divePrintString = f"""
+{nestIndent}++++++++++++++++++++++++++++++++
+{nestIndent}Goal: {str(findNumObject.goal)}
+{nestIndent}Equation Part: {findNumObject.equationPart}
+{nestIndent}Dive Message: {findNumObject.diveMessage}
+{nestIndent}
+{nestIndent}Parts: vvvvvvvvvv
+{nestIndent}{subArrayMessage}
+{nestIndent}^^^^^^^^^^^^^^^^^
+{nestIndent}
+{nestIndent}++++++++++++++++++++++++++++++++
+"""
+        return divePrintString
+    return singlePrintString
 def menu(saveValArray = []):
     
     currentIndex = 0
