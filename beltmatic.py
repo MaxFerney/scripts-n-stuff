@@ -150,13 +150,14 @@ class displayObject:
 
 mainGoal = FindNum(4626, 'Goal/Base Number')
 
-mainMenu = f"""
+def menuString(nestLevel=0):
+    return f"""
 {20*'#'}
 [0] set current findNum
 [1] dive current findnum
 [2] set index
 [3] view all
-[4] Exit (Go Up)
+[4] Exit (Go Up from {nestLevel})
 
 """
 
@@ -208,7 +209,7 @@ def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
 {nestIndent}++++++++++++++++++++++++++++++++"""
         return divePrintString
     return singlePrintString
-def menu(baseFindNum:FindNum):
+def menu(baseFindNum:FindNum, nestLevel=0):
     
     currentIndex = 0
 
@@ -221,7 +222,7 @@ def menu(baseFindNum:FindNum):
         Main Object:{formatStringForFindnum(baseFindNum)}
         currentIndex: {currentIndex}
         Selected Value: [{diveList[currentIndex]}]
-        Selected Equation: [{diveList[currentIndex].equationPart}] 
+        Selected Equation: {diveList[currentIndex].equationPart}
         """)
 
     
@@ -230,7 +231,7 @@ def menu(baseFindNum:FindNum):
         invalid=False
         printState()
 
-        print(mainMenu)
+        print(menuString(nestLevel))
         uInput = int(input('input menu option: '))
         match(uInput):
             case 0: # set current findNum
@@ -252,41 +253,45 @@ def menu(baseFindNum:FindNum):
                 print('--modify findNum')
                 # if(type(saveValArray[currentIndex])==list): #deprecating now
                 #     menu(saveValArray[currentIndex]) # Dive into
-                # if(baseFindNum.locked):
-                #     menu(baseFindNum.diveList[currentIndex]) # Dive into
-                # else:
-                findVal = baseFindNum.goal #expand current
-                print(f"~FindNum: {findVal}~")
-                FindNum(findVal)
-                
+                exit = False
+                if(baseFindNum.locked):
+                    menu(baseFindNum.diveList[currentIndex], nestLevel+1) # Dive into
+                    exit = True
+                else:
+                    findVal = baseFindNum.goal #expand current
+                    print(f"~FindNum: {findVal}~")
+                    FindNum(findVal)
+                    
 
-                invalidInput = True
-                while (invalidInput == True):
-                    print(findNumDescription)
-                    uInput = int(input('SUBMENU option: '))
-                    invalidInput = False
-                    match(uInput):
-                        case 1: # div
-                            newEntry = baseFindNum.selectDiv()
-                            baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
-                            
-                            # saveValArray[currentIndex] = newEntry
-                        case 2: # exp
-                            newEntry = baseFindNum.selectExp()
-                            baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
-                        case 3: # exit
-                            print('--exit')
-                            return
-                        case 4: #print all
-                            print(formatStringForFindnum(baseFindNum))
-                            invalidInput = True
-                        case _:
-                            print('invalid input')
-                            invalidInput = True
+                    invalidInput = True
+                    
+                    while (invalidInput == True):
+                        print(findNumDescription)
+                        uInput = int(input('SUBMENU option: '))
+                        invalidInput = False
+                        match(uInput):
+                            case 1: # div
+                                newEntry = baseFindNum.selectDiv()
+                                baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
+                                
+                                # saveValArray[currentIndex] = newEntry
+                            case 2: # exp
+                                newEntry = baseFindNum.selectExp()
+                                baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
+                            case 3: # exit
+                                print('--exit')
+                                exit=True
+                                continue
+                            case 4: #print all
+                                print(formatStringForFindnum(baseFindNum))
+                                invalidInput = True
+                            case _:
+                                print('invalid input')
+                                invalidInput = True
                     
                             
-
-                menu(baseFindNum.diveList[currentIndex])
+                if(not exit):
+                    menu(baseFindNum.diveList[currentIndex],nestLevel+1)
 
             case 2: # change index
                 print('--change index')
@@ -326,7 +331,7 @@ print('-'*20+'\ncurrent save value: ',end='')
 # print(getValuesFromFindNumArray(saveValue))
 print('save index: '+str(saveIndex))
 
-menu(saveValue)
+menu(saveValue,0)
     
     
 
