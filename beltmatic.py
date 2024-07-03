@@ -59,19 +59,21 @@ class FindNum:
         return str(self.goal)
     
     
-    def formatShorthand(self):
+    def formatShorthand(self, nestLvl=0):
         posNegSign = '+'
         internalString = ''
         if(self.diveType==diveT.divide):
-            internalString = f'({self.diveList[0].formatShorthand()}*{self.diveList[1].formatShorthand()})'
+            internalString = f'({self.diveList[0].formatShorthand(nestLvl+1)}*{self.diveList[1].formatShorthand(nestLvl+1)})'
         elif(self.diveType==diveT.exponent):
             if(self.expDistance<0):
                 posNegSign = '-'
             else:
                 posNegSign = '+'
-            internalString = f'(({self.diveList[0].formatShorthand()}^{self.diveList[1].formatShorthand()}){posNegSign}{self.diveList[2].formatShorthand()})'
+            internalString = f'(({self.diveList[0].formatShorthand(nestLvl+1)}^{self.diveList[1].formatShorthand(nestLvl+1)}){posNegSign}{self.diveList[2].formatShorthand(nestLvl+1)})'
         elif(self.diveType==diveT.base):
             internalString = f'{self.goal}'
+        if(nestLvl==0):
+            internalString += f'={self.goal}'
         return internalString
     
     def setDive(self, findNumArray, diveMessage):
@@ -192,13 +194,17 @@ class displayObject:
 mainGoal = FindNum(9614, 'Goal/Base Number')
 
 def menuString(nestLevel=0):
+    if nestLevel==0:
+        exitString = f'Exit APPLICATION'
+    else:
+        exitString = f'Exit (Go Up from {nestLevel})'
     return f"""
 {20*'#'}
 [0] set current findNum
 [1] dive (modify) current findnum
 [2] set index
 [3] view all
-[4] Exit (Go Up from {nestLevel})
+[4] {exitString}
 
 """
 
@@ -263,10 +269,10 @@ def menu(baseFindNum:FindNum, nestLevel=0):
         # Main Object:{formatStringForFindnum(baseFindNum)}
         print(f"""
 ###################################################
-        Current Equation: {baseFindNum.formatShorthand()}
+        Minified Equation: {baseFindNum.formatShorthand()}
         currentIndex: {currentIndex}
         Selected Value: [{diveList[currentIndex]}]
-        Selected Equation: {diveList[currentIndex].equationPart}
+        Verbose Equation: {diveList[currentIndex].equationPart}
         """)
 
     
