@@ -12,6 +12,18 @@ setExp(range)
 calculates all exponents leading to range
 
 ''')
+from enum import Enum
+class diveT(Enum):
+    base=1
+    divide=2
+    exponent=3
+
+def insertIntoEquation(diveType,diveArray, goal):
+    match(diveType):
+        case diveT.base:
+            return goal
+        case diveT.divide:
+            return f'{diveArray}'
 global SavedNums
 class FindNum:
     goal = 0
@@ -20,8 +32,11 @@ class FindNum:
     exponents = {}
     expRange = 0
     diveList = []
+    diveType = diveT.base
+    expDistance = None
     diveMessage = 'note when splitting number up'
     equationPart = f'[6]*9 = 54'
+    shorthandEquation = '6*9'
     locked = False
     # [2, [2, 5], [7, 2, 1]]
     
@@ -30,6 +45,7 @@ class FindNum:
                  equationPart='[6]*9 = 54'):
         self.goal = int(goal)
         self.equationPart = equationPart
+        self.shorthandEquation = str(goal)
 
         searchVal = goal//2
         self.setDivs(int(searchVal))
@@ -37,10 +53,26 @@ class FindNum:
 
 
     def __str__(self):
-        # not yet implemented
-        self.getDivs()
-        self.getExp(2000)
+        # # not yet implemented
+        # self.getDivs()
+        # self.getExp(2000)
         return str(self.goal)
+    
+    
+    def formatShorthand(self):
+        posNegSign = '+'
+        internalString = ''
+        if(self.diveType==diveT.divide):
+            internalString = f'({self.diveList[0].formatShorthand()}*{self.diveList[1].formatShorthand()})'
+        elif(self.diveType==diveT.exponent):
+            if(self.expDistance<0):
+                posNegSign = '-'
+            else:
+                posNegSign = '+'
+            internalString = f'( ({self.diveList[0].formatShorthand()}^{self.diveList[1].formatShorthand()}) {posNegSign} {self.diveList[2].formatShorthand()})'
+        elif(self.diveType==diveT.base):
+            internalString = f'{self.goal}'
+        return internalString
     
     def setDive(self, findNumArray, diveMessage):
         self.diveMessage = diveMessage
@@ -80,6 +112,8 @@ class FindNum:
                     FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
                     FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
                 ]
+                self.diveType = diveT.divide
+                self.setDive(newEntry, f"goal {self.goal} Divided! into more")
                 return newEntry
             except(KeyError):
                 print('Invalid entry, try again')
@@ -118,11 +152,18 @@ class FindNum:
                 value=self.exponents.get(keySelection)
                 mult = round(value**keySelection,2)
                 distance = abs(round(self.goal-mult))
+                # positive = False
+                # if(round(self.goal-mult)>=0):
+                #     posNeg=True
+                self.expDistance = round(self.goal-mult)
+                print('goal-mult'+str(round(self.goal-mult)))
                 newEntry = [ 
                     FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
                     FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
                     FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
                 ]
+                self.diveType = diveT.exponent
+                self.setDive(newEntry, f"goal {self.goal} Exponentiated! into more")
                 return newEntry
             except(KeyError):
                 print('invalid entry, try again')
@@ -188,7 +229,7 @@ def getValuesFromFindNumArray(findNumArray):
 
 def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
     nestIndent = '\t'*nestLevel
-    singlePrintString = f"""{nestIndent}------------
+    singlePrintString = f"""------------
 {nestIndent}Goal: {findNumObject.goal}
 {nestIndent}Equation Part: {findNumObject.equationPart}
 {nestIndent}------------"""
@@ -209,6 +250,7 @@ def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
 {nestIndent}++++++++++++++++++++++++++++++++"""
         return divePrintString
     return singlePrintString
+
 def menu(baseFindNum:FindNum, nestLevel=0):
     
     currentIndex = 0
@@ -271,19 +313,20 @@ def menu(baseFindNum:FindNum, nestLevel=0):
                         invalidInput = False
                         match(uInput):
                             case 1: # div
-                                newEntry = baseFindNum.selectDiv()
-                                baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
+                                baseFindNum.selectDiv()
+                                # baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
                                 
                                 # saveValArray[currentIndex] = newEntry
                             case 2: # exp
-                                newEntry = baseFindNum.selectExp()
-                                baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
+                                baseFindNum.selectExp()
+                                # baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
                             case 3: # exit
                                 print('--exit')
                                 exit=True
                                 continue
                             case 4: #print all
-                                print(formatStringForFindnum(baseFindNum))
+                                # print(formatStringForFindnum(baseFindNum))
+                                print(baseFindNum.formatShorthand())
                                 invalidInput = True
                             case _:
                                 print('invalid input')
@@ -311,7 +354,8 @@ def menu(baseFindNum:FindNum, nestLevel=0):
                 
             case 3: # view all
                 print('--view all')
-                print(formatStringForFindnum(saveValue))
+                # print(formatStringForFindnum(saveValue))
+                print(baseFindNum.formatShorthand())
                 # print(getValuesFromFindNumArray(saveValArray))
                 # print(getValuesFromFindNumArray(saveValue))
             case 4: #exit
