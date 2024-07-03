@@ -69,7 +69,7 @@ class FindNum:
                 posNegSign = '-'
             else:
                 posNegSign = '+'
-            internalString = f'( ({self.diveList[0].formatShorthand()}^{self.diveList[1].formatShorthand()}) {posNegSign} {self.diveList[2].formatShorthand()})'
+            internalString = f'(({self.diveList[0].formatShorthand()}^{self.diveList[1].formatShorthand()}){posNegSign}{self.diveList[2].formatShorthand()})'
         elif(self.diveType==diveT.base):
             internalString = f'{self.goal}'
         return internalString
@@ -189,13 +189,13 @@ class displayObject:
         return message
 
 
-mainGoal = FindNum(4626, 'Goal/Base Number')
+mainGoal = FindNum(9614, 'Goal/Base Number')
 
 def menuString(nestLevel=0):
     return f"""
 {20*'#'}
 [0] set current findNum
-[1] dive current findnum
+[1] dive (modify) current findnum
 [2] set index
 [3] view all
 [4] Exit (Go Up from {nestLevel})
@@ -260,8 +260,10 @@ def menu(baseFindNum:FindNum, nestLevel=0):
             diveList = baseFindNum.diveList
         else:
             diveList = [baseFindNum]
+        # Main Object:{formatStringForFindnum(baseFindNum)}
         print(f"""
-        Main Object:{formatStringForFindnum(baseFindNum)}
+###################################################
+        Current Equation: {baseFindNum.formatShorthand()}
         currentIndex: {currentIndex}
         Selected Value: [{diveList[currentIndex]}]
         Selected Equation: {diveList[currentIndex].equationPart}
@@ -270,11 +272,12 @@ def menu(baseFindNum:FindNum, nestLevel=0):
     
     invalid = True
     while True:
-        invalid=False
+        
         printState()
 
         print(menuString(nestLevel))
-        uInput = int(input('input menu option: '))
+        print('__________________')
+        uInput = int(input('input MENU option: '))
         match(uInput):
             case 0: # set current findNum
                 print('--set current findNum')
@@ -333,8 +336,8 @@ def menu(baseFindNum:FindNum, nestLevel=0):
                                 invalidInput = True
                     
                             
-                if(not exit):
-                    menu(baseFindNum.diveList[currentIndex],nestLevel+1)
+                # if(not exit):
+                #     menu(baseFindNum.diveList[currentIndex],nestLevel+1)
 
             case 2: # change index
                 print('--change index')
@@ -360,6 +363,7 @@ def menu(baseFindNum:FindNum, nestLevel=0):
                 # print(getValuesFromFindNumArray(saveValue))
             case 4: #exit
                 print('--exit')
+                invalid=False
                 return
             case _:
                 print('--default')
