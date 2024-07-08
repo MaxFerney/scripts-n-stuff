@@ -1,28 +1,8 @@
 
 from FindNum import FindNum
 
-        
 
-class displayObject:
-    storedValue=NotImplemented
-    displayString=''
-    def __init__(self, VALUE, DISPLAY) -> None:
-        self.storedValue = VALUE
-        self.displayString = DISPLAY
-    def __str__(self):
-        message = 20*'+'
-        if(type(self.storedValue)==list):
-            message+=self.displayString+'\n'
-            message+='List\n'
-            for i in range(len(self.storedValue)):
-                message+=f"[{i}] - {self.storedValue[i]}\n"
-
-        else:
-            message+=f"\n Value: {str(self.storedValue)}\n Display: {str(self.displayString)}"
-        return message
-
-
-mainGoal = FindNum(4390, 'Goal/Base Number')
+mainGoal = FindNum(5000, 'Goal/Base Number')
 
 def menuString(nestLevel=0):
     if nestLevel==0:
@@ -89,10 +69,12 @@ def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
         return divePrintString
     return singlePrintString
 
-def menu(baseFindNum:FindNum, nestLevel=0, doinADive=False):
+def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
+    baseFindNum = paramFindNum
     currentIndex = 0
 
     if(nestLevel==0):
+        print(f'saving {baseFindNum.formatShorthand()} to minified...')
         global minified
         minified = baseFindNum.formatShorthand()
 
@@ -138,6 +120,7 @@ def menu(baseFindNum:FindNum, nestLevel=0, doinADive=False):
             case 0: # set current findNum
                 print('--Set findNum')    
                 findVal = int(input('set current FindNum(input): '))
+                currentIndex = 0
                 baseFindNum = FindNum(findVal, 'Overwrote Current Findnum')
             case 1: # modify findNum
                 print('--Dive findNum')

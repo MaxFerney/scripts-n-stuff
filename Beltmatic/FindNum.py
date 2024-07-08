@@ -66,11 +66,14 @@ class FindNum:
         if(self.diveType==diveT.divide):
             internalString = f'({self.diveList[0].formatShorthand(nestLvl+1)}*{self.diveList[1].formatShorthand(nestLvl+1)})'
         elif(self.diveType==diveT.exponent):
-            if(self.expDistance<0):
-                posNegSign = '-'
+            if(self.expDistance==0):
+                internalString = f'({self.diveList[0].formatShorthand(nestLvl+1)}^{self.diveList[1].formatShorthand(nestLvl+1)})'
             else:
-                posNegSign = '+'
-            internalString = f'(({self.diveList[0].formatShorthand(nestLvl+1)}^{self.diveList[1].formatShorthand(nestLvl+1)}){posNegSign}{self.diveList[2].formatShorthand(nestLvl+1)})'
+                if(self.expDistance<0):
+                    posNegSign = '-'
+                elif(self.expDistance>0):
+                    posNegSign = '+'
+                internalString = f'(({self.diveList[0].formatShorthand(nestLvl+1)}^{self.diveList[1].formatShorthand(nestLvl+1)}){posNegSign}{self.diveList[2].formatShorthand(nestLvl+1)})'
         elif(self.diveType==diveT.base):
             internalString = f'{self.goal}'
         if(nestLvl==0):
