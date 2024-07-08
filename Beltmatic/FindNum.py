@@ -4,11 +4,11 @@ usage: `FindNum(goal)`
 
 gets numbers near another number via functions and small numbers.
 
-setDivs(range)
-calculates all divisors between 2 and range
+setDivs()
+calculates all divisors between 2 and self.goal//2
 
-setExp(range)
-calculates all exponents leading to range
+setExp()
+calculates all exponents leading to self.goal//2
 
 ''')
 from enum import Enum
@@ -48,9 +48,8 @@ class FindNum:
         self.equationPart = equationPart
         self.shorthandEquation = str(goal)
 
-        searchVal = goal//2
-        self.setDivs(int(searchVal))
-        self.setExp(int(searchVal), 200)
+        self.setDivs()
+        self.setExp()
 
 
     def __str__(self):
@@ -124,8 +123,9 @@ class FindNum:
                 print('Invalid entry, try again')
 
 
-    def setDivs(self, divRange=20):
+    def setDivs(self):
         divs = {}
+        divRange = self.goal//2
         self.divRange = divRange
         for d in range(2,int(divRange)+1):
             v = self.goal/d
@@ -160,17 +160,19 @@ class FindNum:
             except(KeyError):
                 print('Invalid entry, try again')
                 
-    def setExp(self, expRange=20, exclusion=3000):
+    def setExp(self):
         exponents = {}
+        expRange = self.goal//2
         self.expRange = expRange
         for ex in range(2, int(expRange)+1):
             exponents[ex] = int(round(self.goal**(1./ex)))
 
         self.exponents = exponents
-        self.getExp(exclusion)
+        self.getExp()
 ##        return exponents
 
-    def getExp(self, exclusion=3000):
+    def getExp(self):
+        exclusion = self.goal-1
         self.printPretext('range: '+str(self.expRange)+', exclusion: '+str(exclusion))
         for k,v in self.exponents.items():
             mult = round(v**k,2)
@@ -178,7 +180,8 @@ class FindNum:
             if(distance <= exclusion and mult!=1):
                 print(str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
 
-    def selectExp(self, exclusion=3000):
+    def selectExp(self):
+        exclusion = self.goal-1
         self.printPretext('range: '+str(self.expRange)+', exclusion: '+str(exclusion))
         print('[key] value^key = result | remainder away')
         for k,v in self.exponents.items():
