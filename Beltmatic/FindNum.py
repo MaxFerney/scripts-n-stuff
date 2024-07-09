@@ -1,4 +1,5 @@
 import math
+from enum import Enum
 print('''
 usage: `FindNum(goal)`
 
@@ -11,19 +12,43 @@ setExp()
 calculates all exponents leading to self.goal//2
 
 ''')
-from enum import Enum
+
+def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
+    """While true loop for input handling
+
+    Args:
+        prompt (str): string prompt to be displayed to the user
+        iType (type, optional): type expected for the input value. Defaults to int.
+        validatorCallback (function, optional): Validator for handling values that **returns a boolean for if it passes or fails**. uses a singular input of _iType_. Defaults to None.
+
+    Returns:
+        iType: the input provided by the user. If a validator callback is used, it will return None if it fails. 
+    """
+    incorrect = True
+    while incorrect:
+        try:
+            userInput = iType(input(prompt))
+            if(validatorCallback is None):
+                return userInput
+            else:
+                if(validatorCallback(userInput)):
+                    return userInput
+                else:
+                    print(f'Validator failed. Please try again.')
+                    incorrect = True
+            
+        except(TypeError):
+            print(f'Incorrect input. Expected {iType} Please try again.')
+            incorrect = True
+
+    return userInput
+
 class diveT(Enum):
     base=1
     divide=2
     exponent=3
     add=4
 
-def insertIntoEquation(diveType,diveArray, goal):
-    match(diveType):
-        case diveT.base:
-            return goal
-        case diveT.divide:
-            return f'{diveArray}'
 global SavedNums
 class FindNum:
     goal = 0
@@ -36,8 +61,8 @@ class FindNum:
     diveType = diveT.base
     expDistance = None
     diveMessage = 'note when splitting number up'
-    equationPart = f'[6]*9 = 54'
-    shorthandEquation = '6*9'
+    equationPart = None #f'[6]*9 = 54'
+    shorthandEquation = None #'6*9'
     locked = False
     # [2, [2, 5], [7, 2, 1]]
     
@@ -103,26 +128,6 @@ class FindNum:
         pass
 
 
-    def selectDiv(self):
-        self.printPretext('range: '+str(self.divRange))
-        print('key * value')
-        for k,v in self.divs.items():
-            print('['+str(k)+'] * '+str(v))
-        while True:
-            try:
-                keySelection = int(input('select key: '))
-                valueSelection = self.divs.get(keySelection)
-                newEntry = [ 
-                    FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
-                    FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
-                ]
-                self.diveType = diveT.divide
-                self.setDive(newEntry, f"goal {self.goal} Divided! into more")
-                return newEntry
-            except(KeyError):
-                print('Invalid entry, try again')
-
-
     def setDivs(self):
         divs = {}
         divRange = self.goal//2
@@ -148,8 +153,15 @@ class FindNum:
             print('['+str(k)+'] * '+str(v))
         while True:
             try:
-                keySelection = int(input('select key: '))
-                valueSelection = self.divs.get(keySelection)
+                # keySelection = int(input('select key: '))
+                def divErrorChecking(val:int) -> bool:
+                    try:
+                        self.divs[val]
+                        return True
+                    except(KeyError):
+                        return False
+                keySelection = inputWithErrorChecking('select key: ', int, divErrorChecking)
+                valueSelection = self.divs[keySelection]
                 newEntry = [ 
                     FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
                     FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
@@ -161,11 +173,16 @@ class FindNum:
                 print('Invalid entry, try again')
                 
     def setExp(self):
+        exclusion = self.goal-1
         exponents = {}
         expRange = self.goal//2
         self.expRange = expRange
         for ex in range(2, int(expRange)+1):
-            exponents[ex] = int(round(self.goal**(1./ex)))
+            baseval = int(round(self.goal**(1./ex)))
+            mult = round(baseval**ex,2)
+            distance = abs(round(self.goal-mult))
+            if(distance <= exclusion and mult!=1):
+                exponents[ex] = int(round(self.goal**(1./ex)))
 
         self.exponents = exponents
         self.getExp()
@@ -193,8 +210,15 @@ class FindNum:
         
         while True:
             try:
-                keySelection = int(input('select key: '))
-                value=self.exponents.get(keySelection)
+                # keySelection = int(input('select key: '))
+                def expErrorChecking(val:int) -> bool:
+                    try:
+                        self.exponents[val]
+                        return True
+                    except(KeyError):
+                        return False
+                keySelection = inputWithErrorChecking('select key: ', int, expErrorChecking)
+                value=self.exponents[keySelection]
                 mult = round(value**keySelection,2)
                 distance = abs(round(self.goal-mult))
                 # positive = False
