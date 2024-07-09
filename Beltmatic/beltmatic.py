@@ -119,7 +119,8 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
         match(uInput):
             case 0: # set current findNum
                 print('--Set findNum')    
-                findVal = int(input('set current FindNum(input): '))
+                findVal = inputWithErrorChecking('set current FindNum([Input]): ', int)
+                # findVal = int(input('set current FindNum(input): '))
                 currentIndex = 0
                 baseFindNum = FindNum(findVal, 'Overwrote Current Findnum')
             case 1: # modify findNum

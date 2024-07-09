@@ -15,6 +15,7 @@ calculates all exponents leading to self.goal//2
 
 def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     """While true loop for input handling
+    ~TODO: pls add {provided type} to error message~
 
     Args:
         prompt (str): string prompt to be displayed to the user
@@ -27,9 +28,12 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     incorrect = True
     while incorrect:
         try:
+            # Get user Input
             userInput = iType(input(prompt))
+            # Without Validator
             if(validatorCallback is None):
                 return userInput
+            # Validator Handling
             else:
                 if(validatorCallback(userInput)):
                     return userInput
@@ -37,11 +41,11 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
                     print(f'Validator failed. Please try again.')
                     incorrect = True
             
-        except(TypeError):
-            print(f'Type Error. Expected {iType} Please try again.')
+        except(TypeError): #it doesnt hit this lol
+            print(f'Type Error. Expected {iType} | Received {type(userInput)} Please try again.')
             incorrect = True
         except(ValueError):
-            print(f'Value error. Expected {iType} Please try again.')
+            print(f'Value error. Expected {iType} | Received {type(userInput)} Please try again.')
 
     return userInput
 
