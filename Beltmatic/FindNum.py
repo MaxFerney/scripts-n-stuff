@@ -38,8 +38,10 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
                     incorrect = True
             
         except(TypeError):
-            print(f'Incorrect input. Expected {iType} Please try again.')
+            print(f'Type Error. Expected {iType} Please try again.')
             incorrect = True
+        except(ValueError):
+            print(f'Value error. Expected {iType} Please try again.')
 
     return userInput
 

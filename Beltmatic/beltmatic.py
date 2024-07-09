@@ -1,5 +1,5 @@
 
-from FindNum import FindNum
+from FindNum import FindNum, inputWithErrorChecking
 
 
 mainGoal = FindNum(5000, 'Goal/Base Number')
@@ -113,7 +113,7 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
 
             print(menuString(nestLevel))
             print('__________________')
-            uInput = int(input('input MENU option: '))
+            uInput = inputWithErrorChecking('input MENU option: ', int) #int(input('input MENU option: '))
 
         #User Input Handling
         match(uInput):
@@ -136,27 +136,25 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                     invalidInput = True
                     while (invalidInput == True):
                         print(findNumDescription)
-                        uInput = int(input('SUBMENU option: '))
-                        invalidInput = False
+                        uInput = inputWithErrorChecking('SUBMENU option: ', int)
+                        
                         match(uInput):
                             case 1: # div
                                 baseFindNum.selectDiv()
-                                # baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Divided! into more")
-                                
-                                # saveValArray[currentIndex] = newEntry
+                                invalidInput = False
                             case 2: # exp
                                 baseFindNum.selectExp()
-                                # baseFindNum.setDive(newEntry, f"goal {baseFindNum.goal} Exponentiated! into more")
+                                invalidInput = False
                             case 3: # exit
                                 print('--exit')
-                                exit=True
+                                invalidInput = False
                                 continue
                             case 4: #print all
                                 # print(formatStringForFindnum(baseFindNum))
                                 print(baseFindNum.formatShorthand())
                                 invalidInput = True
                             case _:
-                                print('invalid input')
+                                print('Input case not implemented')
                                 invalidInput = True
                     
                             
@@ -178,7 +176,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                             print( f"[{i}] {item.goal} eq: {item.equationPart}")
                         else:
                             print(f'[{i}] Dive into {item.goal}')
-                    currentIndex = int(input('Select Index: '))
+                    def diveListError(val:int)->bool:
+                        return ( val >= 0 and val < len(baseFindNum.diveList) )
+                    currentIndex = inputWithErrorChecking('Select Index: ', int, diveListError)
                 
             case 3: # view all
                 print('--view all')
