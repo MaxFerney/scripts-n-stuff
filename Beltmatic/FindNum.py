@@ -150,8 +150,14 @@ class FindNum:
 
     def getDivs(self):
         self.printPretext('range: '+str(self.divRange))
+        sum=0
         for k,v in self.divs.items():
-            print(str(k)+' * '+str(v))
+            if(sum==k+v):
+                print(f'[{k}*{v}]')
+            else:
+                sum=k+v
+                print(f'{k}*{v}')
+            
     
     def selectDiv(self):
         self.printPretext('range: '+str(self.divRange))
