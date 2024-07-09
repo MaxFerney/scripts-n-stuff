@@ -1,9 +1,16 @@
 
 from FindNum import FindNum, inputWithErrorChecking
+from enum import Enum
+
 
 
 mainGoal = FindNum(5000, 'Goal/Base Number')
-
+class MainMenu(Enum):
+    setFindNum=0
+    dive=1
+    setDiveIndex=2
+    viewAll=3
+    stepOut=4
 def menuString(nestLevel=0):
     if nestLevel==0:
         exitString = f'Exit APPLICATION'
@@ -18,13 +25,18 @@ def menuString(nestLevel=0):
 [4] {exitString}
 
 """
+class FindNumMenu(Enum):
+    selectDiv=1
+    selectExp=2
+    stepOut=3
+    printAll=4
 
 findNumDescription = f"""
 {30*'#'}
-[1] select div
-[2] select exp
-[3] exit (go back)
-[4] print all
+[{FindNumMenu.selectDiv.value}] select div
+[{FindNumMenu.selectExp.value}] select exp
+[{FindNumMenu.stepOut.value}] exit (go back)
+[{FindNumMenu.printAll.value}] print all
 
 """
 
@@ -117,13 +129,13 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
 
         #User Input Handling
         match(uInput):
-            case 0: # set current findNum
+            case MainMenu.setFindNum.value : # set current findNum
                 print('--Set findNum')    
                 findVal = inputWithErrorChecking('set current FindNum([Input]): ', int)
                 # findVal = int(input('set current FindNum(input): '))
                 currentIndex = 0
                 baseFindNum = FindNum(findVal, 'Overwrote Current Findnum')
-            case 1: # modify findNum
+            case MainMenu.dive.value: # modify findNum
                 print('--Dive findNum')
                 exit = False
                 if(baseFindNum.locked):
@@ -138,19 +150,18 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                     while (invalidInput == True):
                         print(findNumDescription)
                         uInput = inputWithErrorChecking('SUBMENU option: ', int)
-                        
                         match(uInput):
-                            case 1: # div
+                            case FindNumMenu.selectDiv.value: # div
                                 baseFindNum.selectDiv()
                                 invalidInput = False
-                            case 2: # exp
+                            case FindNumMenu.selectExp.value: # exp
                                 baseFindNum.selectExp()
                                 invalidInput = False
-                            case 3: # exit
-                                print('--exit')
+                            case FindNumMenu.stepOut.value: # exit
+                                print('--stepOut')
                                 invalidInput = False
                                 continue
-                            case 4: #print all
+                            case FindNumMenu.printAll.value: #print all
                                 # print(formatStringForFindnum(baseFindNum))
                                 print(baseFindNum.formatShorthand())
                                 invalidInput = True
@@ -162,7 +173,7 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                 # if(not exit):
                 #     menu(baseFindNum.diveList[currentIndex],nestLevel+1)
 
-            case 2: # change index
+            case MainMenu.setDiveIndex.value: # change index
                 print('--change index')
                 if(not baseFindNum.locked):
                     print('findNum not locked. please dive[1] or go up[4].')
@@ -178,17 +189,21 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                         else:
                             print(f'[{i}] Dive into {item.goal}')
                     def diveListError(val:int)->bool:
-                        return ( val >= 0 and val < len(baseFindNum.diveList) )
+                        
+                        if(val >= 0 and val < len(baseFindNum.diveList)):
+                            return True
+                        print(f'[Failed Validation]: Value out of range[{0}, {len(baseFindNum.diveList)}].')
+                        return False
                     currentIndex = inputWithErrorChecking('Select Index: ', int, diveListError)
                 
-            case 3: # view all
+            case MainMenu.viewAll.value: # view all
                 print('--view all')
                 # print(formatStringForFindnum(saveValue))
                 print(baseFindNum.formatShorthand())
                 print(f'Global: {minified}')
                 # print(getValuesFromFindNumArray(saveValArray))
                 # print(getValuesFromFindNumArray(saveValue))
-            case 4: #exit
+            case MainMenu.stepOut.value: #exit
                 print('--exit')
                 invalid=False
                 return
