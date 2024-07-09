@@ -29,7 +29,8 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     while incorrect:
         try:
             # Get user Input
-            userInput = iType(input(prompt))
+            rawInput = input(prompt)
+            userInput = iType(rawInput)
             # Without Validator
             if(validatorCallback is None):
                 return userInput
@@ -42,10 +43,10 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
                     incorrect = True
             
         except(TypeError): #it doesnt hit this lol
-            print(f'Type Error. Expected {iType} | Received {type(userInput)} Please try again.')
+            print(f'Type Error. Expected {iType} | Received {type(rawInput)} Please try again.')
             incorrect = True
         except(ValueError):
-            print(f'Value error. Expected {iType} | Received {type(userInput)} Please try again.')
+            print(f'Value error. Expected {iType} | Received {type(rawInput)} Please try again.')
 
     return userInput
 
