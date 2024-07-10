@@ -4,7 +4,7 @@ from enum import Enum
 
 
 
-mainGoal = FindNum(5869, 'Goal/Base Number')
+mainGoal = FindNum(inputWithErrorChecking('SET FINDNUM GOAL: ', int), 'Goal/Base Number')
 class MainMenu(Enum):
     setFindNum=0
     dive=1
@@ -85,10 +85,7 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
     baseFindNum = paramFindNum
     currentIndex = 0
 
-    if(nestLevel==0):
-        print(f'saving {baseFindNum.formatShorthand()} to minified...')
-        global minified
-        minified = baseFindNum.formatShorthand()
+    
 
     def getVerbose():
         if(baseFindNum.locked):
@@ -115,6 +112,11 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
     
     invalid = True
     while True:
+
+        if(nestLevel==0):
+            print(f'saving {baseFindNum.formatShorthand()} to minified...')
+            global minified
+            minified = baseFindNum.formatShorthand()
         
         #Input Current Level Input
         if(doinADive):
@@ -224,7 +226,7 @@ print('-'*20+'\ncurrent save value: ',end='')
 # print(getValuesFromFindNumArray(saveValue))
 print('save index: '+str(saveIndex))
 
-menu(saveValue,0)
+menu(saveValue,0,True)
     
     
 
