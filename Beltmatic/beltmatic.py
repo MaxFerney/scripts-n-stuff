@@ -4,7 +4,7 @@ from enum import Enum
 
 
 
-mainGoal = FindNum(5000, 'Goal/Base Number')
+mainGoal = FindNum(5869, 'Goal/Base Number')
 class MainMenu(Enum):
     setFindNum=0
     dive=1
@@ -19,7 +19,7 @@ def menuString(nestLevel=0):
     return f"""
 {20*'#'}
 [0] set current findNum
-[1] dive (modify) current findnum
+[1] dive (step into) current findnum
 [2] set index
 [3] view all
 [4] {exitString}
