@@ -36,13 +36,15 @@ def menuString(nestLevel=0):
 class FindNumMenu(Enum):
     selectDiv=1
     selectExp=2
-    printAll=3
-    stepOut=4
+    selectAdd=3
+    printAll=4
+    stepOut=5
 
 findNumDescription = f"""
 {30*'#'}
 [{FindNumMenu.selectDiv.value}] select div
 [{FindNumMenu.selectExp.value}] select exp
+[{FindNumMenu.selectAdd.value}] select add
 [{FindNumMenu.printAll.value}] print all
 [{FindNumMenu.stepOut.value}] exit (go back)
 
@@ -150,7 +152,6 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                 #double dive prevention
                 if(baseFindNum.locked and not doinADive):
                     menu(baseFindNum.diveList[currentIndex], nestLevel+1, True) # Dive into
-                    
                 else:
                     # Print Findnum Values
                     baseFindNum.getDivs()
@@ -166,6 +167,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                                 invalidInput = False
                             case FindNumMenu.selectExp.value: # exp
                                 baseFindNum.selectExp()
+                                invalidInput = False
+                            case FindNumMenu.selectAdd.value: # exp
+                                baseFindNum.selectAdd()
                                 invalidInput = False
                             case FindNumMenu.stepOut.value: # exit
                                 print('--stepOut')
