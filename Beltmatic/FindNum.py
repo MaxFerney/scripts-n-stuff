@@ -240,18 +240,20 @@ Key: [{exp[3]}]
         self.divRange = divRange
         minSum=self.goal
         smallestCombo = ''
+        smallestKey=None
         for d in range(2,int(divRange)+1):
             v = self.goal/d
             if (v).is_integer():
                 if(minSum >= d+v):
                     minSum = d+v
+                    smallestKey=d
                     smallestCombo = f'{int(d)}*{int(v)}={self.goal}'
                 divs[d] = int(v)
         
         self.divs = divs
         if(systemCall):
-            return (int(minSum), smallestCombo, self.goal, passThroughDist)
-        # self.getDivs()
+            return (int(minSum), smallestCombo, self.goal, passThroughDist, smallestKey)
+        # self.getDivs()s
 ##        return divs
 
     def getDivs(self):
@@ -259,18 +261,16 @@ Key: [{exp[3]}]
         sum=0
         for k,v in self.divs.items():
             if(sum==k+v):
-                print(f'[{k}*{v}]')
+                print(f'[[{k}]*{v}]')
             else:
                 sum=k+v
-                print(f'{k}*{v}')
+                print(f'[{k}]*{v}')
             
     
-    def selectDiv(self):
-        self.printPretext('range: '+str(self.divRange))
-        print('key * value')
-        for k,v in self.divs.items():
-            print('['+str(k)+'] * '+str(v))
-        
+    def selectDiv(self, systemCallValue=None):
+        if(systemCallValue is None):#User Input
+            self.getDivs()
+            
             def divErrorChecking(val:int) -> bool:
                 try:
                     self.divs[val]
@@ -278,14 +278,16 @@ Key: [{exp[3]}]
                 except(KeyError):
                     return False
             keySelection = inputWithErrorChecking('select key: ', int, divErrorChecking)
-            valueSelection = self.divs[keySelection]
-            newEntry = [ 
-                FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
-                FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
-            ]
-            self.diveType = diveT.divide
-            self.setDive(newEntry, f"goal {self.goal} Divided! into more")
-            return newEntry
+        else: #Selected via other function call
+            keySelection = systemCallValue
+        valueSelection = self.divs[keySelection]
+        newEntry = [ 
+            FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
+            FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
+        ]
+        self.diveType = diveT.divide
+        self.setDive(newEntry, f"goal {self.goal} Divided! into more")
+        return newEntry
     #endregion Divs
 
     #region Exponents                
@@ -296,6 +298,7 @@ Key: [{exp[3]}]
         self.expRange = expRange
         minSum = self.goal
         smallestCombo = ''
+        smallestKey = None
         for ex in range(2, expRange+1):
             baseval = int(round(self.goal**(1./ex)))
             mult = int(round(baseval**ex,2))
@@ -304,6 +307,7 @@ Key: [{exp[3]}]
                 if(minSum >= baseval+ex+distance):
                     minSum = baseval+ex+distance
                     rawdistance = self.goal-mult
+                    smallestKey = ex
                     if(rawdistance < 0):
                         smallestCombo = f'({baseval}^{ex})-{distance} = {self.goal}'
                     elif(rawdistance > 0):
@@ -316,7 +320,7 @@ Key: [{exp[3]}]
 
         self.exponents = exponents
         if(systemCall):
-            return (int(minSum), smallestCombo, self.goal, passThroughDist)
+            return (int(minSum), smallestCombo, self.goal, passThroughDist, smallestKey)
         # self.getExp()
 ##        return exponents
 
@@ -337,17 +341,9 @@ Key: [{exp[3]}]
                     redesignedString = f'{v}^{k} = {self.goal}'
                 print(redesignedString)
 
-    def selectExp(self):
-        exclusion = self.goal-1
-        self.printPretext('range: '+str(self.expRange)+', exclusion: '+str(exclusion))
-        print('[key] value^key = result | remainder away')
-        for k,v in self.exponents.items():
-            mult = round(v**k,2)
-            distance = abs(round(self.goal-mult))
-            if(distance <= exclusion and mult!=1):
-                cryptidString = f'[{k}] {v}^{k} = {mult} | {distance} away'
-                print(cryptidString)
-        
+    def selectExp(self, systemCallValue=None):
+        if(systemCallValue is None):
+            self.getExp()
             def expErrorChecking(val:int) -> bool:
                 try:
                     self.exponents[val]
@@ -355,22 +351,24 @@ Key: [{exp[3]}]
                 except(KeyError):
                     return False
             keySelection = inputWithErrorChecking('select key: ', int, expErrorChecking)
-            value=self.exponents[keySelection]
-            mult = round(value**keySelection,2)
-            distance = abs(round(self.goal-mult))
-            # positive = False
-            # if(round(self.goal-mult)>=0):
-            #     posNeg=True
-            self.expDistance = round(self.goal-mult)
-            print('goal-mult'+str(round(self.goal-mult)))
-            newEntry = [ 
-                FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
-                FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
-                FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
-            ]
-            self.diveType = diveT.exponent
-            self.setDive(newEntry, f"goal {self.goal} Exponentiated! into more")
-            return newEntry
+        else:
+            keySelection = systemCallValue
+        value=self.exponents[keySelection]
+        mult = round(value**keySelection,2)
+        distance = abs(round(self.goal-mult))
+        # positive = False
+        # if(round(self.goal-mult)>=0):
+        #     posNeg=True
+        self.expDistance = round(self.goal-mult)
+        print('goal-mult'+str(round(self.goal-mult)))
+        newEntry = [ 
+            FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
+            FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
+            FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
+        ]
+        self.diveType = diveT.exponent
+        self.setDive(newEntry, f"goal {self.goal} Exponentiated! into more")
+        return newEntry
     #endregion exponents
                 
 FindNum(11160).setAdds()
