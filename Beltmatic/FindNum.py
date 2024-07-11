@@ -270,26 +270,22 @@ Key: [{exp[3]}]
         print('key * value')
         for k,v in self.divs.items():
             print('['+str(k)+'] * '+str(v))
-        while True:
-            try:
-                # keySelection = int(input('select key: '))
-                def divErrorChecking(val:int) -> bool:
-                    try:
-                        self.divs[val]
-                        return True
-                    except(KeyError):
-                        return False
-                keySelection = inputWithErrorChecking('select key: ', int, divErrorChecking)
-                valueSelection = self.divs[keySelection]
-                newEntry = [ 
-                    FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
-                    FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
-                ]
-                self.diveType = diveT.divide
-                self.setDive(newEntry, f"goal {self.goal} Divided! into more")
-                return newEntry
-            except(KeyError):
-                print('Invalid entry, try again')
+        
+            def divErrorChecking(val:int) -> bool:
+                try:
+                    self.divs[val]
+                    return True
+                except(KeyError):
+                    return False
+            keySelection = inputWithErrorChecking('select key: ', int, divErrorChecking)
+            valueSelection = self.divs[keySelection]
+            newEntry = [ 
+                FindNum(keySelection,f'[{keySelection}]*{valueSelection}={self.goal}'), 
+                FindNum(valueSelection, f'{keySelection}*[{valueSelection}]={self.goal}')
+            ]
+            self.diveType = diveT.divide
+            self.setDive(newEntry, f"goal {self.goal} Divided! into more")
+            return newEntry
     #endregion Divs
 
     #region Exponents                
@@ -352,34 +348,29 @@ Key: [{exp[3]}]
                 cryptidString = f'[{k}] {v}^{k} = {mult} | {distance} away'
                 print(cryptidString)
         
-        while True:
-            try:
-                # keySelection = int(input('select key: '))
-                def expErrorChecking(val:int) -> bool:
-                    try:
-                        self.exponents[val]
-                        return True
-                    except(KeyError):
-                        return False
-                keySelection = inputWithErrorChecking('select key: ', int, expErrorChecking)
-                value=self.exponents[keySelection]
-                mult = round(value**keySelection,2)
-                distance = abs(round(self.goal-mult))
-                # positive = False
-                # if(round(self.goal-mult)>=0):
-                #     posNeg=True
-                self.expDistance = round(self.goal-mult)
-                print('goal-mult'+str(round(self.goal-mult)))
-                newEntry = [ 
-                    FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
-                    FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
-                    FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
-                ]
-                self.diveType = diveT.exponent
-                self.setDive(newEntry, f"goal {self.goal} Exponentiated! into more")
-                return newEntry
-            except(KeyError):
-                print('invalid entry, try again')
+            def expErrorChecking(val:int) -> bool:
+                try:
+                    self.exponents[val]
+                    return True
+                except(KeyError):
+                    return False
+            keySelection = inputWithErrorChecking('select key: ', int, expErrorChecking)
+            value=self.exponents[keySelection]
+            mult = round(value**keySelection,2)
+            distance = abs(round(self.goal-mult))
+            # positive = False
+            # if(round(self.goal-mult)>=0):
+            #     posNeg=True
+            self.expDistance = round(self.goal-mult)
+            print('goal-mult'+str(round(self.goal-mult)))
+            newEntry = [ 
+                FindNum(value, f'[{value}] ^ {keySelection} = {mult} ({distance} away from {self.goal})'),
+                FindNum(keySelection,f'{value} ^ [{keySelection}] = {mult} ({distance} away from {self.goal})'), 
+                FindNum(distance,f'{value} ^ {keySelection} = {mult} ([{distance}] away from {self.goal})'),
+            ]
+            self.diveType = diveT.exponent
+            self.setDive(newEntry, f"goal {self.goal} Exponentiated! into more")
+            return newEntry
     #endregion exponents
                 
 FindNum(11160).setAdds()
