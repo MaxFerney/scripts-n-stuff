@@ -49,6 +49,14 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
     return userInput
 
+def testNumberUsefullness(number:int=11172):
+    #((7*14)*((2^7)-14))=11172
+    numObj=FindNum(number)
+    divVal = numObj.setDivs(True)
+    print(divVal)
+    numObj.getDivs()
+    
+
 def findAndReplaceInString(number:int):
     #total open parens before = nest level. 1 = 0, 2 = 1, 0 is unlocked
     #((7*14)*((2^7)-14))=11172
@@ -164,16 +172,21 @@ class FindNum:
         return newEntry
 
 
-    def setDivs(self):
+    def setDivs(self, autoMode=False):
         divs = {}
         divRange = self.goal//2
         self.divRange = divRange
+        minSum=self.goal
         for d in range(2,int(divRange)+1):
             v = self.goal/d
             if (v).is_integer():
+                if(minSum >= d+v):
+                    minSum = d+v
                 divs[d] = int(v)
         
         self.divs = divs
+        if(autoMode):
+            return int(minSum)
         # self.getDivs()
 ##        return divs
 
@@ -278,3 +291,6 @@ class FindNum:
                 return newEntry
             except(KeyError):
                 print('invalid entry, try again')
+                
+                
+testNumberUsefullness(37)
