@@ -86,10 +86,8 @@ def findBestNumberOfArray(numArray: list[int], dictRef= dict[int,int]):
     dictRef.values
     print(f"""
 Best Divide:
-    Goal: {bestDiv[2]}
     Equation: {bestDiv[1]}
 Best Exponent:
-    Goal: {bestExp[2]}
     Equation: {bestExp[1]}
 """)
     return (bestDiv, bestExp)
@@ -200,11 +198,11 @@ class FindNum:
         numArray = list(self.adds.values())
         (div,exp) = findBestNumberOfArray(numArray, self.adds)
         print(f"""
-        Key: [{div[3]}]
-        Generates: ({div[1]})+{div[3]} = {div[2]}
-        Key: [{exp[3]}]
-        Generates: ({exp[1]})+{exp[3]} = {exp[2]}
-        """)
+Key: [{div[3]}]
+    Generates: ({div[1]})+{div[3]}={self.goal}
+Key: [{exp[3]}]
+    Generates: ({exp[1]})+{exp[3]}={self.goal}
+""")
 
     def selectAdd(self):
         self.printPretext()
@@ -247,7 +245,7 @@ class FindNum:
             if (v).is_integer():
                 if(minSum >= d+v):
                     minSum = d+v
-                    smallestCombo = f'{int(d)}*{int(v)}'
+                    smallestCombo = f'{int(d)}*{int(v)}={self.goal}'
                 divs[d] = int(v)
         
         self.divs = divs
