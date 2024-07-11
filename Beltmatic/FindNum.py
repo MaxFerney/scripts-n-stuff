@@ -51,10 +51,33 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
 def testNumberUsefullness(number:int=11172):
     #((7*14)*((2^7)-14))=11172
+    class result(Enum):
+        div=1
+        exp=2
+        add=3
+    
     numObj=FindNum(number)
-    divVal = numObj.setDivs(True)
+    
+    def doSetFunction(functionName):
+        value=functionName(True)
+        if(value == numObj.goal):
+            value = 0
+        print(f'{functionName.__name__} : {value}')
+        return value
+    # divVal = numObj.setDivs(True)
+    divVal = doSetFunction(numObj.setDivs)
+    
     print(divVal)
-    numObj.getDivs()
+    # if(divVal == numObj.goal):
+    #     #no viable results, empty loop
+    #     divVal=0
+    #     pass
+    # else:
+    #     #add to resultset
+    #     pass
+    # print(divVal)
+    
+    
     
 
 def findAndReplaceInString(number:int):
@@ -293,4 +316,4 @@ class FindNum:
                 print('invalid entry, try again')
                 
                 
-testNumberUsefullness(37)
+testNumberUsefullness(6588)
