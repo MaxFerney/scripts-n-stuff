@@ -10,8 +10,11 @@ calculates all divisors between 2 and self.goal//2
 setExp()
 calculates all exponents leading to self.goal//2
 
-''')
+setAdd()
+calculates all(up to 30) adds leading to self.goal-1
 
+''')
+#region simplifiers
 def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     """While true loop for input handling
     ~TODO: pls add {provided type} to error message~
@@ -49,7 +52,9 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
     return userInput
 
+
 def testNumberUsefullness(number:int=11172):
+    print(f'goal: {number}')
     #((7*14)*((2^7)-14))=11172
     class result(Enum):
         div=1
@@ -64,20 +69,33 @@ def testNumberUsefullness(number:int=11172):
             value = 0
         print(f'{functionName.__name__} : {value}')
         return value
-    # divVal = numObj.setDivs(True)
+    
+    
     divVal = doSetFunction(numObj.setDivs)
+    expVal = doSetFunction(numObj.setExp)
+    return (divVal, expVal)
+
+
+def findBestNumberOfArray(numArray: list[int]):
+    bestDiv, bestExp = testNumberUsefullness(numArray[0])
+    for num in numArray:
+        (div,exp) = testNumberUsefullness(num)
+        if(bestDiv[0]==0 or div[0]<=bestDiv[0]):
+            bestDiv = div
+        if(bestExp[0]==0 or exp[0]<=bestExp[0]):
+            bestExp = exp
+    print(f"""
+Best Divide:
+    Goal: {bestDiv[2]}
+    Equation: {bestDiv[1]}
+Best Exponent:
+    Goal: {bestExp[2]}
+    Equation: {bestExp[1]}
+""")
+            
+        
     
-    print(divVal)
-    # if(divVal == numObj.goal):
-    #     #no viable results, empty loop
-    #     divVal=0
-    #     pass
-    # else:
-    #     #add to resultset
-    #     pass
-    # print(divVal)
-    
-    
+#endregion simplifiers
     
 
 def findAndReplaceInString(number:int):
@@ -95,6 +113,7 @@ class diveT(Enum):
 
 global SavedNums
 class FindNum:
+    #region Variables
     goal = 0
     divs = {}
     divRange = 0
@@ -110,7 +129,9 @@ class FindNum:
     shorthandEquation = None #'6*9'
     locked = False
     # [2, [2, 5], [7, 2, 1]]
+    #endregion
     
+    #region class definition
     def __init__(self, 
                  goal, 
                  equationPart='[6]*9 = 54'):
@@ -128,8 +149,9 @@ class FindNum:
         # self.getDivs()
         # self.getExp(2000)
         return str(self.goal)
+    #endregion
     
-    
+    #region Utility Functions
     def formatShorthand(self, nestLvl=0):
         posNegSign = '+'
         internalString = ''
@@ -159,7 +181,9 @@ class FindNum:
 
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
+    #endregion
 
+    #region Adds
     def setAdds(self):
         adds={}
         if (self.goal-1 <= self.addRange): self.addRange = self.goal-1
@@ -193,23 +217,26 @@ class FindNum:
         self.diveType = diveT.add
         self.setDive(newEntry, f"goal {self.goal} Added! into more")
         return newEntry
+    #endregion Adds
 
-
-    def setDivs(self, autoMode=False):
+    #region Divs
+    def setDivs(self, systemCall=False):
         divs = {}
         divRange = self.goal//2
         self.divRange = divRange
         minSum=self.goal
+        smallestCombo = ''
         for d in range(2,int(divRange)+1):
             v = self.goal/d
             if (v).is_integer():
                 if(minSum >= d+v):
                     minSum = d+v
+                    smallestCombo = f'{d}*{v}'
                 divs[d] = int(v)
         
         self.divs = divs
-        if(autoMode):
-            return int(minSum)
+        if(systemCall):
+            return (int(minSum), smallestCombo, self.goal)
         # self.getDivs()
 ##        return divs
 
@@ -249,20 +276,29 @@ class FindNum:
                 return newEntry
             except(KeyError):
                 print('Invalid entry, try again')
-                
-    def setExp(self):
+    #endregion Divs
+
+    #region Exponents                
+    def setExp(self, systemCall=False):
         exclusion = self.goal-1
         exponents = {}
         expRange = self.goal//2
         self.expRange = expRange
+        minSum = self.goal
+        smallestCombo = ''
         for ex in range(2, int(expRange)+1):
             baseval = int(round(self.goal**(1./ex)))
             mult = round(baseval**ex,2)
             distance = abs(round(self.goal-mult))
             if(distance <= exclusion and mult!=1):
-                exponents[ex] = int(round(self.goal**(1./ex)))
+                if(minSum >= baseval+ex+int(distance)):
+                    minSum = baseval+ex+int(distance)
+                    smallestCombo = f'{baseval}^{ex} = {mult} | {distance}'
+                exponents[ex] = baseval
 
         self.exponents = exponents
+        if(systemCall):
+            return (int(minSum), smallestCombo, self.goal)
         # self.getExp()
 ##        return exponents
 
@@ -314,6 +350,5 @@ class FindNum:
                 return newEntry
             except(KeyError):
                 print('invalid entry, try again')
+    #endregion exponents
                 
-                
-testNumberUsefullness(6588)
