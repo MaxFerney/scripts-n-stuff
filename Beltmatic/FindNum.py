@@ -54,7 +54,7 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
 
 def testNumberUsefullness(number:int=11172):
-    print(f'goal: {number}')
+    # print(f'goal: {number}')
     #((7*14)*((2^7)-14))=11172
     class result(Enum):
         div=1
@@ -67,7 +67,7 @@ def testNumberUsefullness(number:int=11172):
         value=functionName(True)
         if(value == numObj.goal):
             value = 0
-        print(f'{functionName.__name__} : {value}')
+        # print(f'{functionName.__name__} : {value}')
         return value
     
     
@@ -231,7 +231,7 @@ class FindNum:
             if (v).is_integer():
                 if(minSum >= d+v):
                     minSum = d+v
-                    smallestCombo = f'{d}*{v}'
+                    smallestCombo = f'{int(d)}*{int(v)}'
                 divs[d] = int(v)
         
         self.divs = divs
@@ -282,18 +282,26 @@ class FindNum:
     def setExp(self, systemCall=False):
         exclusion = self.goal-1
         exponents = {}
-        expRange = self.goal//2
+        expRange = int(self.goal//2)
         self.expRange = expRange
         minSum = self.goal
         smallestCombo = ''
-        for ex in range(2, int(expRange)+1):
+        for ex in range(2, expRange+1):
             baseval = int(round(self.goal**(1./ex)))
-            mult = round(baseval**ex,2)
-            distance = abs(round(self.goal-mult))
+            mult = int(round(baseval**ex,2))
+            distance = int(abs(round(self.goal-mult)))
             if(distance <= exclusion and mult!=1):
-                if(minSum >= baseval+ex+int(distance)):
-                    minSum = baseval+ex+int(distance)
-                    smallestCombo = f'{baseval}^{ex} = {mult} | {distance}'
+                if(minSum >= baseval+ex+distance):
+                    minSum = baseval+ex+distance
+                    rawdistance = self.goal-mult
+                    if(rawdistance < 0):
+                        smallestCombo = f'({baseval}^{ex})-{distance} = {self.goal}'
+                    elif(rawdistance > 0):
+                        smallestCombo = f'({baseval}^{ex})+{distance} = {self.goal}'
+                    elif(rawdistance == 0):
+                        smallestCombo = f'{baseval}^{ex} = {self.goal}'
+                        
+                    
                 exponents[ex] = baseval
 
         self.exponents = exponents
@@ -309,7 +317,15 @@ class FindNum:
             mult = round(v**k,2)
             distance = abs(round(self.goal-mult))
             if(distance <= exclusion and mult!=1):
-                print(str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
+                rawdistance = self.goal-mult
+                redesignedString = str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away'
+                if(rawdistance < 0):
+                    redesignedString = f'({v}^{k})-{distance} = {self.goal}'
+                elif(rawdistance > 0):
+                    redesignedString = f'({v}^{k})+{distance} = {self.goal}'
+                elif(rawdistance == 0):
+                    redesignedString = f'{v}^{k} = {self.goal}'
+                print(redesignedString)
 
     def selectExp(self):
         exclusion = self.goal-1
@@ -352,3 +368,8 @@ class FindNum:
                 print('invalid entry, try again')
     #endregion exponents
                 
+findBestNumberOfArray([11150, 
+                       11151, 
+                       11152, 
+                       11153, 
+                       11154])
