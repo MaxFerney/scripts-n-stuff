@@ -166,7 +166,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                             if(m.value==option):
                                 return True
                         return False
+                    
                     print(findNumDescription)
+                    
                     uInput = inputWithErrorChecking('SUBMENU option: ', int, subMenuCallback)
                     match(uInput):
                         case FindNumMenu.selectDiv.value: # div

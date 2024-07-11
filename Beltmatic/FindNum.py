@@ -15,9 +15,8 @@ calculates all(up to 50) adds leading to self.goal-1
 
 ''')
 #region input handler
-def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
-    """While true loop for input handling
-    ~TODO: pls add {provided type} to error message~
+def inputWithErrorChecking(prompt:str, iType:type=int, validatorCallback=None):
+    """While true loop for input handling. iType is expected string and validator is a bool function expecting the user input
 
     Args:
         prompt (str): string prompt to be displayed to the user
@@ -27,12 +26,21 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     Returns:
         iType: the input provided by the user. If a validator callback is used, it will return None if it fails. 
     """
-    incorrect = True
-    while incorrect:
+    
+    while True:
         try:
             # Get user Input
             rawInput = input(prompt)
+            print('raw '+rawInput)
             userInput = iType(rawInput)
+        except(TypeError): #it doesnt hit this lol - not anymore
+            print(f'Type Error. Expected [{iType.__name__}] | Received [{type(rawInput).__name__}] Please try again.')
+            continue
+        except(ValueError):
+            print(f'Value error. Expected [{iType.__name__}] | Received [{type(rawInput).__name__}] Please try again.')
+            continue
+        
+        try:
             # Without Validator
             if(validatorCallback is None):
                 return userInput
@@ -42,13 +50,10 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
                     return userInput
                 else:
                     print(f'Validator failed. Please try again.')
-                    incorrect = True
-            
-        except(TypeError): #it doesnt hit this lol
-            print(f'Type Error. Expected {iType.__name__} | Received {type(rawInput).__name__} Please try again.')
-            incorrect = True
-        except(ValueError):
-            print(f'Value error. Expected {iType.__name__} | Received {type(rawInput).__name__} Please try again.')
+                    continue
+        except(TypeError): #it doesnt hit this lol - not anymore
+            print(f'VALIDATION Type Error. Expected [{iType.__name__}] | Received [{type(rawInput).__name__}] Please try again.')
+            continue
 
     return userInput
 #endregion
@@ -85,12 +90,12 @@ def findBestNumberOfArray(numArray: list[int], dictRef= dict[int,int]):
         if(bestExp[0]==0 or exp[0]<=bestExp[0]):
             bestExp = exp
     dictRef.values
-    print(f"""
-Best Divide:
-    Equation: {bestDiv[1]}
-Best Exponent:
-    Equation: {bestExp[1]}
-""")
+#     print(f"""
+# Best Divide:
+#     Equation: {bestDiv[1]}
+# Best Exponent:
+#     Equation: {bestExp[1]}
+# """)
     return (bestDiv, bestExp)
 
 #endregion recursors
@@ -232,7 +237,7 @@ Key: [{exp[3]}]
                 return False
         keySelection = inputWithErrorChecking('select key: ', int, addErrorChecking)
         if(keySelection==div[3]):sysCall=(diveT.divide, div[4])
-        if(keySelection==exp[3]):sysCall=(diveT.divide, div[4])
+        if(keySelection==exp[3]):sysCall=(diveT.exponent, div[4])
         valueSelection = self.adds[keySelection]
         newEntry = [ 
             FindNum(keySelection,f'[{keySelection}]+{valueSelection}={self.goal}'), 
