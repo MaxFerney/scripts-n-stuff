@@ -133,7 +133,8 @@ class FindNum:
     #region class definition
     def __init__(self, 
                  goal, 
-                 equationPart='[6]*9 = 54'):
+                 equationPart='[6]*9 = 54',
+                 systemArgs: tuple[diveT,int]=None):
         self.goal = int(goal)
         self.equationPart = equationPart
         self.shorthandEquation = str(goal)
@@ -141,6 +142,13 @@ class FindNum:
         self.setDivs()
         self.setExp()
         self.setAdds()
+        
+        if(systemArgs is not None):
+            match(systemArgs[0]):
+                case diveT.divide:
+                    self.selectDiv(systemArgs[1])
+                case diveT.exponent:
+                    self.selectExp(systemArgs[1])
 
 
     def __str__(self):
