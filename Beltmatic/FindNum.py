@@ -53,18 +53,14 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     return userInput
 
 
-def testNumberUsefullness(number:int=11172):
+def testNumberUsefullness(number:int=11172, passDist=None):
     # print(f'goal: {number}')
     #((7*14)*((2^7)-14))=11172
-    class result(Enum):
-        div=1
-        exp=2
-        add=3
     
     numObj=FindNum(number)
     
     def doSetFunction(functionName):
-        value=functionName(True)
+        value=functionName(True, passDist)
         if(value == numObj.goal):
             value = 0
         # print(f'{functionName.__name__} : {value}')
@@ -76,14 +72,18 @@ def testNumberUsefullness(number:int=11172):
     return (divVal, expVal)
 
 
-def findBestNumberOfArray(numArray: list[int]):
-    bestDiv, bestExp = testNumberUsefullness(numArray[0])
-    for num in numArray:
-        (div,exp) = testNumberUsefullness(num)
+def findBestNumberOfArray(numArray: list[int], dictRef= dict[int,int]):
+    if(len(numArray)>0):
+        bestDiv, bestExp = testNumberUsefullness(numArray[0])
+    else:
+        bestDiv = bestExp = (0,'default')
+    for dist,num in dictRef.items():
+        (div,exp) = testNumberUsefullness(num, dist)
         if(bestDiv[0]==0 or div[0]<=bestDiv[0]):
             bestDiv = div
         if(bestExp[0]==0 or exp[0]<=bestExp[0]):
             bestExp = exp
+    dictRef.values
     print(f"""
 Best Divide:
     Goal: {bestDiv[2]}
@@ -92,6 +92,7 @@ Best Exponent:
     Goal: {bestExp[2]}
     Equation: {bestExp[1]}
 """)
+    return (bestDiv, bestExp)
             
         
     
@@ -194,18 +195,33 @@ class FindNum:
         # self.getAdds()
     
     def getAdds(self):
-        for k, v in self.adds.items():
-            print(f'[{k}]+{v} = {self.goal}')
+        # for k, v in self.adds.items():
+        #     print(f'{k}+{v} = {self.goal}')
+        numArray = list(self.adds.values())
+        (div,exp) = findBestNumberOfArray(numArray, self.adds)
+        print(f"""
+        Key: [{div[3]}]
+        Generates: ({div[1]})+{div[3]} = {div[2]}
+        Key: [{exp[3]}]
+        Generates: ({exp[1]})+{exp[3]} = {exp[2]}
+        """)
 
     def selectAdd(self):
         self.printPretext()
         print('[key] + value')
-        for k, v in self.adds.items():
-            print(f'[{k}]+{v} = {self.goal}')
+        # for k, v in self.adds.items():
+        #     print(f'[{k}]+{v} = {self.goal}')
+        self.getAdds()
+        numArray = list(self.adds.values())
+        (div,exp) = findBestNumberOfArray(numArray, self.adds)
+
         def addErrorChecking(val:int) -> bool:
             try:
                 self.adds[val]
-                return True
+                if( val in [div[3],exp[3]]):
+                    return True
+                print("Not a useful number. Try one from keys above")
+                return False
             except(KeyError):
                 return False
         keySelection = inputWithErrorChecking('select key: ', int, addErrorChecking)
@@ -220,7 +236,7 @@ class FindNum:
     #endregion Adds
 
     #region Divs
-    def setDivs(self, systemCall=False):
+    def setDivs(self, systemCall=False, passThroughDist=None):
         divs = {}
         divRange = self.goal//2
         self.divRange = divRange
@@ -236,7 +252,7 @@ class FindNum:
         
         self.divs = divs
         if(systemCall):
-            return (int(minSum), smallestCombo, self.goal)
+            return (int(minSum), smallestCombo, self.goal, passThroughDist)
         # self.getDivs()
 ##        return divs
 
@@ -279,7 +295,7 @@ class FindNum:
     #endregion Divs
 
     #region Exponents                
-    def setExp(self, systemCall=False):
+    def setExp(self, systemCall=False, passThroughDist=None):
         exclusion = self.goal-1
         exponents = {}
         expRange = int(self.goal//2)
@@ -306,7 +322,7 @@ class FindNum:
 
         self.exponents = exponents
         if(systemCall):
-            return (int(minSum), smallestCombo, self.goal)
+            return (int(minSum), smallestCombo, self.goal, passThroughDist)
         # self.getExp()
 ##        return exponents
 
@@ -368,8 +384,4 @@ class FindNum:
                 print('invalid entry, try again')
     #endregion exponents
                 
-findBestNumberOfArray([11150, 
-                       11151, 
-                       11152, 
-                       11153, 
-                       11154])
+FindNum(11160).setAdds()

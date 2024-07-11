@@ -8,7 +8,7 @@ possible idea: + or - 30 from a goal. run a div and exp on those. Sum of the sma
     would need to recursively call the findnum and calculate in a nested and controlled environment
     (and programatically)
     
-add/subtract loops starting size of 20-30
+add/subtract loops starting size of 20-30 <this implements the above>
 
 """
 
@@ -156,6 +156,7 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                     # Print Findnum Values
                     baseFindNum.getDivs()
                     baseFindNum.getExp()
+                    baseFindNum.getAdds()
 
                     invalidInput = True
                     while (invalidInput == True):
