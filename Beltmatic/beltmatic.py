@@ -26,25 +26,27 @@ def menuString(nestLevel=0):
         exitString = f'Exit (Go Up. Nest {nestLevel})'
     return f"""
 {20*'#'}
-[0] set current findNum
-[1] dive (step into) current findnum
-[2] set index
-[3] view all
-[4] {exitString}
+[{MainMenu.setFindNum.value}] set current findNum
+[{MainMenu.dive.value}] dive (step into) current findnum
+[{MainMenu.setDiveIndex.value}] set index
+[{MainMenu.viewAll.value}] view all
+[{MainMenu.stepOut.value}] {exitString}
 
 """
 class FindNumMenu(Enum):
     selectDiv=1
     selectExp=2
-    stepOut=3
+    selectAdd=3
     printAll=4
+    stepOut=5
 
 findNumDescription = f"""
 {30*'#'}
 [{FindNumMenu.selectDiv.value}] select div
 [{FindNumMenu.selectExp.value}] select exp
-[{FindNumMenu.stepOut.value}] exit (go back)
+[{FindNumMenu.selectAdd.value}] select add
 [{FindNumMenu.printAll.value}] print all
+[{FindNumMenu.stepOut.value}] exit (go back)
 
 """
 
@@ -121,7 +123,7 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
     invalid = True
     while True:
 
-        if(nestLevel==0):
+        if(nestLevel==0 and baseFindNum.locked):
             print(f'saving {baseFindNum.formatShorthand()} to minified...')
             global minified
             minified = baseFindNum.formatShorthand()
@@ -147,10 +149,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                 baseFindNum = FindNum(findVal, 'Overwrote Current Findnum')
             case MainMenu.dive.value: # modify findNum
                 print('--Dive findNum')
-                exit = False
-                if(baseFindNum.locked):
+                #double dive prevention
+                if(baseFindNum.locked and not doinADive):
                     menu(baseFindNum.diveList[currentIndex], nestLevel+1, True) # Dive into
-                    exit = True
                 else:
                     # Print Findnum Values
                     baseFindNum.getDivs()
@@ -167,13 +168,16 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                             case FindNumMenu.selectExp.value: # exp
                                 baseFindNum.selectExp()
                                 invalidInput = False
+                            case FindNumMenu.selectAdd.value: # exp
+                                baseFindNum.selectAdd()
+                                invalidInput = False
                             case FindNumMenu.stepOut.value: # exit
                                 print('--stepOut')
                                 invalidInput = False
                                 continue
                             case FindNumMenu.printAll.value: #print all
                                 # print(formatStringForFindnum(baseFindNum))
-                                print(baseFindNum.formatShorthand())
+                                print(minified)
                                 invalidInput = True
                             case _:
                                 print('Input case not implemented')

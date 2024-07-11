@@ -49,6 +49,13 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
     return userInput
 
+def findAndReplaceInString(number:int):
+    #total open parens before = nest level. 1 = 0, 2 = 1, 0 is unlocked
+    #((7*14)*((2^7)-14))=11172
+    #(98*114)=11172 #locked, nest 0
+    searchString = '((7*14)*((2^7)-14))=11172'
+    
+
 class diveT(Enum):
     base=1
     divide=2
@@ -63,6 +70,7 @@ class FindNum:
     exponents = {}
     expRange = 0
     adds = {}
+    addRange=30
     diveList = []
     diveType = diveT.base
     expDistance = None
@@ -81,6 +89,7 @@ class FindNum:
 
         self.setDivs()
         self.setExp()
+        self.setAdds()
 
 
     def __str__(self):
@@ -104,6 +113,8 @@ class FindNum:
                 elif(self.expDistance>0):
                     posNegSign = '+'
                 internalString = f'(({self.diveList[0].formatShorthand(nestLvl+1)}^{self.diveList[1].formatShorthand(nestLvl+1)}){posNegSign}{self.diveList[2].formatShorthand(nestLvl+1)})'
+        elif(self.diveType==diveT.add):
+            internalString = f'({self.diveList[0].formatShorthand(nestLvl+1)}+{self.diveList[1].formatShorthand(nestLvl+1)})'
         elif(self.diveType==diveT.base):
             internalString = f'{self.goal}'
         if(nestLvl==0):
@@ -120,18 +131,37 @@ class FindNum:
 
     def setAdds(self):
         adds={}
-        for a in range(1, self.goal-1):
-            pass
+        if (self.goal-1 <= self.addRange): self.addRange = self.goal-1
+        for a in range(1, 30):
+            subtractable = self.goal-a
+            adds[a] = subtractable
         self.adds=adds
-        self.getAdds()
+        # self.getAdds()
     
     def getAdds(self):
-        pass
+        for k, v in self.adds.items():
+            print(f'[{k}]+{v} = {self.goal}')
 
     def selectAdd(self):
         self.printPretext()
-        print('key + value')
-        pass
+        print('[key] + value')
+        for k, v in self.adds.items():
+            print(f'[{k}]+{v} = {self.goal}')
+        def addErrorChecking(val:int) -> bool:
+            try:
+                self.adds[val]
+                return True
+            except(KeyError):
+                return False
+        keySelection = inputWithErrorChecking('select key: ', int, addErrorChecking)
+        valueSelection = self.adds[keySelection]
+        newEntry = [ 
+            FindNum(keySelection,f'[{keySelection}]+{valueSelection}={self.goal}'), 
+            FindNum(valueSelection, f'{keySelection}+[{valueSelection}]={self.goal}')
+        ]
+        self.diveType = diveT.add
+        self.setDive(newEntry, f"goal {self.goal} Added! into more")
+        return newEntry
 
 
     def setDivs(self):
@@ -144,7 +174,7 @@ class FindNum:
                 divs[d] = int(v)
         
         self.divs = divs
-        self.getDivs()
+        # self.getDivs()
 ##        return divs
 
     def getDivs(self):
@@ -197,7 +227,7 @@ class FindNum:
                 exponents[ex] = int(round(self.goal**(1./ex)))
 
         self.exponents = exponents
-        self.getExp()
+        # self.getExp()
 ##        return exponents
 
     def getExp(self):
