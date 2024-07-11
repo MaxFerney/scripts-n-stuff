@@ -45,10 +45,10 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
                     incorrect = True
             
         except(TypeError): #it doesnt hit this lol
-            print(f'Type Error. Expected {iType} | Received {type(rawInput)} Please try again.')
+            print(f'Type Error. Expected {iType.__name__} | Received {type(rawInput).__name__} Please try again.')
             incorrect = True
         except(ValueError):
-            print(f'Value error. Expected {iType} | Received {type(rawInput)} Please try again.')
+            print(f'Value error. Expected {iType.__name__} | Received {type(rawInput).__name__} Please try again.')
 
     return userInput
 #endregion
@@ -399,4 +399,3 @@ Key: [{exp[3]}]
         return newEntry
     #endregion exponents
                 
-FindNum(11160).setAdds()
