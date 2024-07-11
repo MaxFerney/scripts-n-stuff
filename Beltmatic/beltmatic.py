@@ -11,7 +11,7 @@ possible idea: + or - 30 from a goal. run a div and exp on those. Sum of the sma
 add/subtract loops starting size of 20-30 <this implements the above>
 
 """
-
+#region Menu Def
 mainGoal = FindNum(inputWithErrorChecking('SET FINDNUM GOAL: ', int), 'Goal/Base Number')
 class MainMenu(Enum):
     setFindNum=0
@@ -49,10 +49,10 @@ findNumDescription = f"""
 [{FindNumMenu.stepOut.value}] exit (go back)
 
 """
-
+#endregion
 saveValue=None
 minified=None
-
+#region formatFunctions
 def getValuesFromFindNumArray(findNumArray):
     printArray = []
     if(type(findNumArray)==list):
@@ -90,13 +90,15 @@ def formatStringForFindnum(findNumObject:FindNum, nestLevel=0):
 {nestIndent}++++++++++++++++++++++++++++++++"""
         return divePrintString
     return singlePrintString
+#endregion
 
+#region Menu
 def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
     baseFindNum = paramFindNum
     currentIndex = 0
 
     
-
+    #region menuPrinters
     def getVerbose():
         if(baseFindNum.locked):
             diveList = baseFindNum.diveList
@@ -117,10 +119,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
         Selected Value: [{diveList[currentIndex]}]
         {getVerbose()}
         """)
-    
+    #endregion
 
     
-    invalid = True
     while True:
 
         if(nestLevel==0 and baseFindNum.locked):
@@ -160,8 +161,14 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
 
                     invalidInput = True
                     while (invalidInput == True):
-                        print(findNumDescription)
-                        uInput = inputWithErrorChecking('SUBMENU option: ', int)
+                        # print(findNumDescription)
+                        def subMenuCallback(option):
+                            if(option == int(FindNumMenu.stepOut)):return False
+                            for m in FindNumMenu:
+                                if(m.value==option):
+                                    return True
+                            return False
+                        uInput = inputWithErrorChecking(f'{findNumDescription} \nSUBMENU option: ', int, subMenuCallback)
                         match(uInput):
                             case FindNumMenu.selectDiv.value: # div
                                 baseFindNum.selectDiv()
@@ -230,7 +237,9 @@ def menu(paramFindNum:FindNum, nestLevel=0, doinADive=False):
                 doinADive=False
         # Set doinADive back to false since it's just a one time toggle.
         doinADive=False
+#endregion menu
 
+#region Run Code
 saveValue = mainGoal
 saveIndex = 0
 
@@ -240,6 +249,7 @@ print('-'*20+'\ncurrent save value: ',end='')
 print('save index: '+str(saveIndex))
 
 menu(saveValue,0,True)
+#endregion
     
     
 

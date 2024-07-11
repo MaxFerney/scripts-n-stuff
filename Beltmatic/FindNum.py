@@ -11,10 +11,10 @@ setExp()
 calculates all exponents leading to self.goal//2
 
 setAdd()
-calculates all(up to 30) adds leading to self.goal-1
+calculates all(up to 50) adds leading to self.goal-1
 
 ''')
-#region simplifiers
+#region input handler
 def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     """While true loop for input handling
     ~TODO: pls add {provided type} to error message~
@@ -51,7 +51,8 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
             print(f'Value error. Expected {iType} | Received {type(rawInput)} Please try again.')
 
     return userInput
-
+#endregion
+#region Recursors
 
 def testNumberUsefullness(number:int=11172, passDist=None):
     # print(f'goal: {number}')
@@ -91,10 +92,8 @@ Best Exponent:
     Equation: {bestExp[1]}
 """)
     return (bestDiv, bestExp)
-            
-        
-    
-#endregion simplifiers
+
+#endregion recursors
     
 
 def findAndReplaceInString(number:int):
@@ -111,6 +110,7 @@ class diveT(Enum):
     add=4
 
 global SavedNums
+
 class FindNum:
     #region Variables
     goal = 0
@@ -194,7 +194,7 @@ class FindNum:
     def setAdds(self):
         adds={}
         if (self.goal-1 <= self.addRange): self.addRange = self.goal-1
-        for a in range(1, 30):
+        for a in range(1, 50):
             subtractable = self.goal-a
             adds[a] = subtractable
         self.adds=adds
@@ -231,10 +231,12 @@ Key: [{exp[3]}]
             except(KeyError):
                 return False
         keySelection = inputWithErrorChecking('select key: ', int, addErrorChecking)
+        if(keySelection==div[3]):sysCall=(diveT.divide, div[4])
+        if(keySelection==exp[3]):sysCall=(diveT.divide, div[4])
         valueSelection = self.adds[keySelection]
         newEntry = [ 
             FindNum(keySelection,f'[{keySelection}]+{valueSelection}={self.goal}'), 
-            FindNum(valueSelection, f'{keySelection}+[{valueSelection}]={self.goal}')
+            FindNum(valueSelection, f'{keySelection}+[{valueSelection}]={self.goal}', sysCall)
         ]
         self.diveType = diveT.add
         self.setDive(newEntry, f"goal {self.goal} Added! into more")
@@ -243,6 +245,15 @@ Key: [{exp[3]}]
 
     #region Divs
     def setDivs(self, systemCall=False, passThroughDist=None):
+        """_summary_
+
+        Args:
+            systemCall (bool, optional): system call bool. Defaults to False.
+            passThroughDist (int, optional): addition distance pass through, for handling sum distance. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
         divs = {}
         divRange = self.goal//2
         self.divRange = divRange
@@ -300,6 +311,15 @@ Key: [{exp[3]}]
 
     #region Exponents                
     def setExp(self, systemCall=False, passThroughDist=None):
+        """_summary_
+
+        Args:
+            systemCall (bool, optional): call this function via system call. Defaults to False.
+            passThroughDist (int, optional): addition distance pass through, for handling sum distance. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
         exclusion = self.goal-1
         exponents = {}
         expRange = int(self.goal//2)
