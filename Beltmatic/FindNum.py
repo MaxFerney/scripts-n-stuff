@@ -10,8 +10,11 @@ calculates all divisors between 2 and self.goal//2
 setExp()
 calculates all exponents leading to self.goal//2
 
-''')
+setAdd()
+calculates all(up to 30) adds leading to self.goal-1
 
+''')
+#region simplifiers
 def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
     """While true loop for input handling
     ~TODO: pls add {provided type} to error message~
@@ -49,6 +52,51 @@ def inputWithErrorChecking(prompt, iType:type=int, validatorCallback=None):
 
     return userInput
 
+
+def testNumberUsefullness(number:int=11172, passDist=None):
+    # print(f'goal: {number}')
+    #((7*14)*((2^7)-14))=11172
+    
+    numObj=FindNum(number)
+    
+    def doSetFunction(functionName):
+        value=functionName(True, passDist)
+        if(value == numObj.goal):
+            value = 0
+        # print(f'{functionName.__name__} : {value}')
+        return value
+    
+    
+    divVal = doSetFunction(numObj.setDivs)
+    expVal = doSetFunction(numObj.setExp)
+    return (divVal, expVal)
+
+
+def findBestNumberOfArray(numArray: list[int], dictRef= dict[int,int]):
+    if(len(numArray)>0):
+        bestDiv, bestExp = testNumberUsefullness(numArray[0])
+    else:
+        bestDiv = bestExp = (0,'default')
+    for dist,num in dictRef.items():
+        (div,exp) = testNumberUsefullness(num, dist)
+        if(bestDiv[0]==0 or div[0]<=bestDiv[0]):
+            bestDiv = div
+        if(bestExp[0]==0 or exp[0]<=bestExp[0]):
+            bestExp = exp
+    dictRef.values
+    print(f"""
+Best Divide:
+    Equation: {bestDiv[1]}
+Best Exponent:
+    Equation: {bestExp[1]}
+""")
+    return (bestDiv, bestExp)
+            
+        
+    
+#endregion simplifiers
+    
+
 def findAndReplaceInString(number:int):
     #total open parens before = nest level. 1 = 0, 2 = 1, 0 is unlocked
     #((7*14)*((2^7)-14))=11172
@@ -64,6 +112,7 @@ class diveT(Enum):
 
 global SavedNums
 class FindNum:
+    #region Variables
     goal = 0
     divs = {}
     divRange = 0
@@ -79,7 +128,9 @@ class FindNum:
     shorthandEquation = None #'6*9'
     locked = False
     # [2, [2, 5], [7, 2, 1]]
+    #endregion
     
+    #region class definition
     def __init__(self, 
                  goal, 
                  equationPart='[6]*9 = 54'):
@@ -97,8 +148,9 @@ class FindNum:
         # self.getDivs()
         # self.getExp(2000)
         return str(self.goal)
+    #endregion
     
-    
+    #region Utility Functions
     def formatShorthand(self, nestLvl=0):
         posNegSign = '+'
         internalString = ''
@@ -128,7 +180,9 @@ class FindNum:
 
     def printPretext(self, info=''):
         print('\nGoal: '+str(self.goal)+' | '+info+'\n'+('-'*37))
+    #endregion
 
+    #region Adds
     def setAdds(self):
         adds={}
         if (self.goal-1 <= self.addRange): self.addRange = self.goal-1
@@ -139,18 +193,33 @@ class FindNum:
         # self.getAdds()
     
     def getAdds(self):
-        for k, v in self.adds.items():
-            print(f'[{k}]+{v} = {self.goal}')
+        # for k, v in self.adds.items():
+        #     print(f'{k}+{v} = {self.goal}')
+        numArray = list(self.adds.values())
+        (div,exp) = findBestNumberOfArray(numArray, self.adds)
+        print(f"""
+Key: [{div[3]}]
+    Generates: ({div[1]})+{div[3]}={self.goal}
+Key: [{exp[3]}]
+    Generates: ({exp[1]})+{exp[3]}={self.goal}
+""")
 
     def selectAdd(self):
         self.printPretext()
         print('[key] + value')
-        for k, v in self.adds.items():
-            print(f'[{k}]+{v} = {self.goal}')
+        # for k, v in self.adds.items():
+        #     print(f'[{k}]+{v} = {self.goal}')
+        self.getAdds()
+        numArray = list(self.adds.values())
+        (div,exp) = findBestNumberOfArray(numArray, self.adds)
+
         def addErrorChecking(val:int) -> bool:
             try:
                 self.adds[val]
-                return True
+                if( val in [div[3],exp[3]]):
+                    return True
+                print("Not a useful number. Try one from keys above")
+                return False
             except(KeyError):
                 return False
         keySelection = inputWithErrorChecking('select key: ', int, addErrorChecking)
@@ -162,18 +231,26 @@ class FindNum:
         self.diveType = diveT.add
         self.setDive(newEntry, f"goal {self.goal} Added! into more")
         return newEntry
+    #endregion Adds
 
-
-    def setDivs(self):
+    #region Divs
+    def setDivs(self, systemCall=False, passThroughDist=None):
         divs = {}
         divRange = self.goal//2
         self.divRange = divRange
+        minSum=self.goal
+        smallestCombo = ''
         for d in range(2,int(divRange)+1):
             v = self.goal/d
             if (v).is_integer():
+                if(minSum >= d+v):
+                    minSum = d+v
+                    smallestCombo = f'{int(d)}*{int(v)}={self.goal}'
                 divs[d] = int(v)
         
         self.divs = divs
+        if(systemCall):
+            return (int(minSum), smallestCombo, self.goal, passThroughDist)
         # self.getDivs()
 ##        return divs
 
@@ -213,20 +290,37 @@ class FindNum:
                 return newEntry
             except(KeyError):
                 print('Invalid entry, try again')
-                
-    def setExp(self):
+    #endregion Divs
+
+    #region Exponents                
+    def setExp(self, systemCall=False, passThroughDist=None):
         exclusion = self.goal-1
         exponents = {}
-        expRange = self.goal//2
+        expRange = int(self.goal//2)
         self.expRange = expRange
-        for ex in range(2, int(expRange)+1):
+        minSum = self.goal
+        smallestCombo = ''
+        for ex in range(2, expRange+1):
             baseval = int(round(self.goal**(1./ex)))
-            mult = round(baseval**ex,2)
-            distance = abs(round(self.goal-mult))
+            mult = int(round(baseval**ex,2))
+            distance = int(abs(round(self.goal-mult)))
             if(distance <= exclusion and mult!=1):
-                exponents[ex] = int(round(self.goal**(1./ex)))
+                if(minSum >= baseval+ex+distance):
+                    minSum = baseval+ex+distance
+                    rawdistance = self.goal-mult
+                    if(rawdistance < 0):
+                        smallestCombo = f'({baseval}^{ex})-{distance} = {self.goal}'
+                    elif(rawdistance > 0):
+                        smallestCombo = f'({baseval}^{ex})+{distance} = {self.goal}'
+                    elif(rawdistance == 0):
+                        smallestCombo = f'{baseval}^{ex} = {self.goal}'
+                        
+                    
+                exponents[ex] = baseval
 
         self.exponents = exponents
+        if(systemCall):
+            return (int(minSum), smallestCombo, self.goal, passThroughDist)
         # self.getExp()
 ##        return exponents
 
@@ -237,7 +331,15 @@ class FindNum:
             mult = round(v**k,2)
             distance = abs(round(self.goal-mult))
             if(distance <= exclusion and mult!=1):
-                print(str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away')
+                rawdistance = self.goal-mult
+                redesignedString = str(v)+'^'+str(k)+' = '+str(mult)+' | '+str(distance)+' away'
+                if(rawdistance < 0):
+                    redesignedString = f'({v}^{k})-{distance} = {self.goal}'
+                elif(rawdistance > 0):
+                    redesignedString = f'({v}^{k})+{distance} = {self.goal}'
+                elif(rawdistance == 0):
+                    redesignedString = f'{v}^{k} = {self.goal}'
+                print(redesignedString)
 
     def selectExp(self):
         exclusion = self.goal-1
@@ -278,3 +380,6 @@ class FindNum:
                 return newEntry
             except(KeyError):
                 print('invalid entry, try again')
+    #endregion exponents
+                
+FindNum(11160).setAdds()
