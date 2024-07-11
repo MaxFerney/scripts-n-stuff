@@ -2,7 +2,15 @@
 from FindNum import FindNum, inputWithErrorChecking
 from enum import Enum
 
+"""todos
 
+possible idea: + or - 30 from a goal. run a div and exp on those. Sum of the smallest 2 numbers gets highlighted. 
+    would need to recursively call the findnum and calculate in a nested and controlled environment
+    (and programatically)
+    
+add/subtract loops starting size of 20-30
+
+"""
 
 mainGoal = FindNum(inputWithErrorChecking('SET FINDNUM GOAL: ', int), 'Goal/Base Number')
 class MainMenu(Enum):
