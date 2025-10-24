@@ -1,31 +1,38 @@
 import math
 
+def tryInput(message="", ValType=int):
+    while True:
+        try:
+            return ValType(input(message))
+        except ValueError:
+            print("Invalid type. Please try again.")
+
 def menu():
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
-        industry = int(input("Industry: "))
-        level = int(input("Tech Level: "))
+        industry = tryInput("Industry: ")
+        level = tryInput("Tech Level: ")
         manu(industry, level)
         
     def researchInput():
         print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
         
-        science = int(input("Total Science: "))
-        curLevel = int(input("Current Tech Level: "))
-        curExp = int(input("Current Exp toward next level: "))
+        science = tryInput("Total Science: ")
+        curLevel = tryInput("Current Tech Level: ")
+        curExp = tryInput("Current Exp toward next level: ")
         
         print("""Blessings (aka, Strengths/Weaknesses)
               [0] - No bonuses
               [1] - Strength (it's cheaper to research this)
               [2] - Weakness (it cost more to research this)""")
-        bless = int(input("Blessing: "))
+        bless = tryInput("Blessing: ")
         match (bless):
             case 0: blessing = None
             case 1: blessing = True
             case 2: blessing = False
             case _: blessing = None
         
-        planLevel = int(input("How many levels to plan for? "))
+        planLevel = tryInput("How many levels to plan for? ")
         if planLevel == None:
             planLevel = 1
         
@@ -33,13 +40,13 @@ def menu():
     
     while True:
         print(f"""
-              Do a calculation
+              Select a menu option.
               
               [0] Manufacturing
               [1] Research
               """)
         
-        menuInput = int(input("Menu Option: "))
+        menuInput = tryInput("Menu Option: ")
         
         match(menuInput):
             case 0:
