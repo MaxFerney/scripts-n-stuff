@@ -8,6 +8,7 @@ def tryInput(message="", ValType=int):
             print("Invalid type. Please try again.")
 
 def menu():
+    keepRunningMenu = True
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         industry = tryInput("Industry: ")
@@ -38,7 +39,7 @@ def menu():
         
         planResearch(science, curLevel, curExp, blessing, planLevel)
     
-    while True:
+    while keepRunningMenu == True:
         print(f"""
               Select a menu option.
               
@@ -46,13 +47,23 @@ def menu():
               [1] Research
               """)
         
-        menuInput = tryInput("Menu Option: ")
+        try:
+            menuInput = tryInput("Menu Option: ")
+        except KeyboardInterrupt:
+            print("Leaving the main function.")
+            keepRunningMenu = False
+            # break
+            return
+        try:
+            match(menuInput):
+                case 0:
+                    manuInput()
+                case 1:
+                    researchInput()
+        except:
+            print("\nEscaping inner function. Returning to menu.")
         
-        match(menuInput):
-            case 0:
-                manuInput()
-            case 1:
-                researchInput()
+            
 
 def manu(industry, TechLevel):
     total = industry * (TechLevel+4)
