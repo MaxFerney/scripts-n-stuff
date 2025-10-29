@@ -52,7 +52,6 @@ def menu():
         except KeyboardInterrupt:
             print("Leaving the main function.")
             keepRunningMenu = False
-            # break
             return
         try:
             match(menuInput):
@@ -75,17 +74,36 @@ Per Hour Tick:        {perTick:.2f}
 """
     print(printString)
 
-
+def simplifyHours(hours):
+    hrStr = "Hour"
+    if(hours>24):
+        days = hours//24
+        dayStr = "Day"
+        if days > 1:
+            dayStr = "Days"
+            
+        hrs = hours%24
+        if hrs > 1:
+            hrStr = "Hours"
+            
+        return f"{days} {dayStr} {hrs} {hrStr}"
+    else:
+        if hours > 1:
+            hrStr = "Hours"
+        return f"{hours} {hrStr}"
 def planResearch(TotalScience,CurrentLevel,CurrentExp,Blessing,Levels=3):
     totalHours = 0
     loopExp = CurrentExp
+    print("_"*55)
+    print("| Level | \t| Hours This Level | \t| Total Hours |")
     for level in range (Levels):
         if(level > 0):
             loopExp = 0
         loopLevel = level+CurrentLevel
         hoursThisLevel = researchTime(TotalScience, loopLevel, loopExp, Blessing, False)
         totalHours += hoursThisLevel
-        print(f"Level {loopLevel+1}:\t{totalHours} Hours")
+        print(f"Level {loopLevel+1}:\t{simplifyHours(hoursThisLevel)} \t\t| {simplifyHours(totalHours)}")
+    print("_"*55)
 
 def researchTime(TotalScience, \
                  CurrentLevel, \
