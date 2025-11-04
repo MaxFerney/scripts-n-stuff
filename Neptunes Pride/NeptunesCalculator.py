@@ -12,8 +12,14 @@ def menu():
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         industry = tryInput("Industry: ")
-        level = tryInput("Tech Level: ")
-        manu(industry, level)
+        level = tryInput("Manufacturing Level: ")
+        currentShips = tryInput("Current Ships: ")
+        if currentShips == None:
+            currentShips = 0
+        planLevel = tryInput("How many days to plan for? ")
+        if planLevel == None:
+            planLevel = 1
+        manu(industry, level, currentShips, planLevel)
         
     def researchInput():
         print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
@@ -62,13 +68,18 @@ def menu():
         
             
 
-def manu(industry, TechLevel):
+
+def manu(industry, TechLevel, currentShips=0, planLevel=10):
     total = industry * (TechLevel+4)
     perTick = (total / 24)
+    EstimatedShips = total*planLevel+currentShips
     
     printString = f"""
-Per Production Cycle: {total}
-Per Hour Tick:        {perTick:.2f}
+Ships Per Production Cycle: \t{total}
+Ships Per Hour Tick:        \t{perTick:.2f}
+Current Ships:              \t{currentShips}
+Ships in {planLevel} days:        \t{EstimatedShips}
+
 """
     print(printString)
 
