@@ -27,11 +27,10 @@ def menu():
               [1] - Strength (it's cheaper to research this)
               [2] - Weakness (it cost more to research this)""")
         bless = tryInput("Blessing: ")
-        match (bless):
-            case 0: blessing = None
-            case 1: blessing = True
-            case 2: blessing = False
-            case _: blessing = None
+        if bless ==  0: blessing = None
+        elif bless ==  1: blessing = True
+        elif bless ==  2: blessing = False
+        else: blessing = None
         
         planLevel = tryInput("How many levels to plan for? ")
         if planLevel == None:
@@ -54,11 +53,10 @@ def menu():
             keepRunningMenu = False
             return
         try:
-            match(menuInput):
-                case 0:
-                    manuInput()
-                case 1:
-                    researchInput()
+            if menuInput ==  0:
+                manuInput()
+            if menuInput ==  1:
+                researchInput()
         except:
             print("\nEscaping inner function. Returning to menu.")
         
@@ -122,13 +120,13 @@ def researchTime(TotalScience, \
                  blessing=None,\
                  PrintStr=True):
     CostRate = 144
-    match blessing:
-        case None:
-            CostRate = 144
-        case True:
-            CostRate = 128
-        case False:
-            CostRate = 160
+
+    if blessing ==  None:
+        CostRate = 144
+    if blessing ==  True:
+        CostRate = 128
+    if blessing ==  False:
+        CostRate = 160
 
     CurrentCost = CostRate*CurrentLevel
     RemainingResearch = CurrentCost - CurrentExp
