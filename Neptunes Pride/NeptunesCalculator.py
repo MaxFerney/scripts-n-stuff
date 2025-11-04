@@ -46,6 +46,7 @@ def menu():
     
     while keepRunningMenu == True:
         print(f"""
+              {20*'-'}
               Select a menu option.
               
               [0] Manufacturing
@@ -74,6 +75,13 @@ def manu(industry, TechLevel, currentShips=0, planLevel=10):
     perTick = (total / 24)
     EstimatedShips = total*planLevel+currentShips
     
+    print(f"Today : \t{currentShips} Ships")
+    for level in range(1,planLevel+1):
+        shipPerLevel = total*(level) + currentShips
+        levelStr = f"{simplifyDays(level)}: \t{shipPerLevel} Ships"
+        print(levelStr)
+    
+    
     printString = f"""
 Ships Per Production Cycle: \t{total}
 Ships Per Hour Tick:        \t{perTick:.2f}
@@ -83,7 +91,7 @@ Ships in {planLevel} days:        \t{EstimatedShips}
 """
     print(printString)
 
-def simplifyHours(hours):
+def simplifyHours(hours, dayFormatting=False):
     # Days
     days = 0
     if(hours>=24):
@@ -106,10 +114,17 @@ def simplifyHours(hours):
     
     # Edge case formatting
     if days == 1 and hrs == 0:
-        return "1 Day    "
+        if(dayFormatting):
+            return "1 Day    "
+        else:
+            return "1 Day  "
     
     # String Return
     return f"{finalDaysStr}{finalHourStr}"
+
+def simplifyDays(days):
+    hours = days*24
+    return simplifyHours(hours)
 
 def planResearch(TotalScience,CurrentLevel,CurrentExp,Blessing,Levels=3):
     totalHours = 0
@@ -122,7 +137,7 @@ def planResearch(TotalScience,CurrentLevel,CurrentExp,Blessing,Levels=3):
         loopLevel = level+CurrentLevel
         hoursThisLevel = researchTime(TotalScience, loopLevel, loopExp, Blessing, False)
         totalHours += hoursThisLevel
-        print(f"Level {loopLevel+1}:\t{simplifyHours(hoursThisLevel)} \t\t| {simplifyHours(totalHours)}")
+        print(f"Level {loopLevel+1}:\t{simplifyHours(hoursThisLevel, True)} \t\t| {simplifyHours(totalHours, True)}")
     print("_"*55)
 
 def researchTime(TotalScience, \
