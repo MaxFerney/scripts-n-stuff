@@ -75,22 +75,33 @@ Per Hour Tick:        {perTick:.2f}
     print(printString)
 
 def simplifyHours(hours):
-    hrStr = "Hour"
-    if(hours>24):
+    # Days
+    days = 0
+    if(hours>=24):
         days = hours//24
-        dayStr = "Day"
-        if days > 1:
-            dayStr = "Days"
-            
-        hrs = hours%24
-        if hrs > 1:
-            hrStr = "Hours"
-            
-        return f"{days} {dayStr} {hrs} {hrStr}"
-    else:
-        if hours > 1:
-            hrStr = "Hours"
-        return f"{hours} {hrStr}"
+    finalDaysStr = '' #0 days
+    dayStr = "Day"
+    if days > 1:
+        dayStr = "Days"
+    if(days > 0):
+        finalDaysStr = f"{days} {dayStr} " # 1 day (s)
+    
+    # Hours
+    hrs = hours%24
+    finalHourStr = '' #0 hours
+    hrStr = "Hour"
+    if hrs > 1:
+        hrStr = "Hours"
+    if(hrs > 0): 
+        finalHourStr = f"{hrs} {hrStr}" # 1 hour (s)
+    
+    # Edge case formatting
+    if days == 1 and hrs == 0:
+        return "1 Day    "
+    
+    # String Return
+    return f"{finalDaysStr}{finalHourStr}"
+
 def planResearch(TotalScience,CurrentLevel,CurrentExp,Blessing,Levels=3):
     totalHours = 0
     loopExp = CurrentExp
