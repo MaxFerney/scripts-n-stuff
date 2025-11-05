@@ -48,12 +48,12 @@ def menu():
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         
-        industry = InputParameter("Total Industry: ")
-        level = InputParameter("Manufacturing Level: ")
-        currentShips = InputParameter("Current Ships: ", int, 0)
-        planLevel = InputParameter("How many days to plan for? ", int, 1)
-        
-        params = [industry,level,currentShips,planLevel]
+        params = [
+            InputParameter("Total Industry: "), #Industry
+            InputParameter("Manufacturing Level: "), #Manu
+            InputParameter("Current Ships: ", int, 0), #Ships
+            InputParameter("How many days to plan for? ", int, 1) #Days
+        ]
         
         for p in params:
             p.tryInput()
