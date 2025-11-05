@@ -1,5 +1,41 @@
 import math
 
+global debug
+
+debug = True
+
+class InputParameter:
+    inputMessage = "Default Input: "
+    # If passed in on creation - will handle NoneType input, and use said default.    
+    inputValue = None
+    inputType = int
+    
+    def __init__(self, message, type=int, value=None):
+        self.inputMessage = message
+        self.inputType = type
+        self.inputValue = value
+        
+        # self.tryInput()
+    
+    def tryInput(this, message=None, ValType=None):
+        if message == None:
+            message = this.inputMessage
+        if ValType == None:
+            ValType = this.inputType
+        
+        while True:
+            try:
+                val = ValType(input(message))
+                # If none, use default
+                if val == None:
+                    if debug: print(f"DEBUG | using default: {this.inputValue}")
+                    val = this.inputValue
+                # Set this.inputValue to the latest input
+                this.inputValue = val
+                return val
+            except ValueError:
+                print("Invalid type. Please try again.")
+                
 def tryInput(message="", ValType=int):
     while True:
         try:
@@ -11,15 +47,17 @@ def menu():
     keepRunningMenu = True
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
-        industry = tryInput("Industry: ")
-        level = tryInput("Manufacturing Level: ")
-        currentShips = tryInput("Current Ships: ")
-        if currentShips == None:
-            currentShips = 0
-        planLevel = tryInput("How many days to plan for? ")
-        if planLevel == None:
-            planLevel = 1
-        manu(industry, level, currentShips, planLevel)
+        
+        industry = InputParameter("Total Industry: ")
+        level = InputParameter("Manufacturing Level: ")
+        currentShips = InputParameter("Current Ships: ", int, 0)
+        planLevel = InputParameter("How many days to plan for? ", int, 1)
+        
+        params = [industry,level,currentShips,planLevel]
+        
+        for p in params:
+            p.tryInput()
+        manu(params)
         
     def researchInput():
         print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
@@ -64,13 +102,19 @@ def menu():
                 manuInput()
             if menuInput ==  1:
                 researchInput()
-        except:
+        except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
         
             
 
 
-def manu(industry, TechLevel, currentShips=0, planLevel=10):
+def manu(paramArray=None):
+    if paramArray != None:
+        industry = paramArray[0].inputValue
+        TechLevel = paramArray[1].inputValue
+        currentShips = paramArray[2].inputValue
+        planLevel = paramArray[3].inputValue
+    
     total = industry * (TechLevel+4)
     perTick = (total / 24)
     EstimatedShips = total*planLevel+currentShips
