@@ -47,7 +47,6 @@ def menu():
     keepRunningMenu = True
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
-        
         params = [
             InputParameter("Total Industry: "), #Industry
             InputParameter("Manufacturing Level: "), #Manu
@@ -62,25 +61,21 @@ def menu():
     def researchInput():
         print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
         
-        science = tryInput("Total Science: ")
-        curLevel = tryInput("Current Tech Level: ")
-        curExp = tryInput("Current Exp toward next level: ")
-        
-        print("""Blessings (aka, Strengths/Weaknesses)
+        params = [
+            InputParameter("Total Science: "), #Science
+            InputParameter("Current Tech Level: "), #Research
+            InputParameter("Current Exp toward next level: ", int, 0), #Experience Points
+            InputParameter("""
+            Blessings (aka, Strengths/Weaknesses)
               [0] - No bonuses
               [1] - Strength (it's cheaper to research this)
-              [2] - Weakness (it cost more to research this)""")
-        bless = tryInput("Blessing: ")
-        if bless ==  0: blessing = None
-        elif bless ==  1: blessing = True
-        elif bless ==  2: blessing = False
-        else: blessing = None
-        
-        planLevel = tryInput("How many levels to plan for? ")
-        if planLevel == None:
-            planLevel = 1
-        
-        planResearch(science, curLevel, curExp, blessing, planLevel)
+              [2] - Weakness (it cost more to research this)
+Blessing: """, int, 0), #Racial Trait
+            InputParameter("How many levels to plan for? ", int, 1)
+        ]
+        for p in params:
+            p.tryInput()
+        planResearch(params)
     
     while keepRunningMenu == True:
         print(f"""
@@ -108,12 +103,11 @@ def menu():
             
 
 
-def manu(paramArray=None):
-    if paramArray != None:
-        industry = paramArray[0].inputValue
-        TechLevel = paramArray[1].inputValue
-        currentShips = paramArray[2].inputValue
-        planLevel = paramArray[3].inputValue
+def manu(paramArray):
+    industry = paramArray[0].inputValue
+    TechLevel = paramArray[1].inputValue
+    currentShips = paramArray[2].inputValue
+    planLevel = paramArray[3].inputValue
     
     total = industry * (TechLevel+4)
     perTick = (total / 24)
@@ -170,7 +164,19 @@ def simplifyDays(days):
     hours = days*24
     return simplifyHours(hours)
 
-def planResearch(TotalScience,CurrentLevel,CurrentExp,Blessing,Levels=3):
+def planResearch(paramArray):
+    TotalScience = paramArray[0].inputValue
+    CurrentLevel = paramArray[1].inputValue
+    CurrentExp = paramArray[2].inputValue
+    bless = paramArray[3].inputValue
+    Levels = paramArray[4].inputValue
+    
+    if bless ==  0: Blessing = None
+    elif bless ==  1: Blessing = True
+    elif bless ==  2: Blessing = False
+    else: Blessing = None
+    
+    
     totalHours = 0
     loopExp = CurrentExp
     print("_"*55)
