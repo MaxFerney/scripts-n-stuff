@@ -2,7 +2,63 @@ import math
 
 global debug
 
-debug = True
+debug = False
+
+def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
+    # Input Translation
+    if paramArray != None:
+        atkShips = paramArray[0].inputValue
+        atkWeap = paramArray[1].inputValue
+        defShips = paramArray[2].inputValue
+        defWeap = paramArray[3].inputValue
+    
+    # Defender Bonus
+    defWeap = defWeap+1 
+
+    # Create Entities
+    attacker = CombatEntity(atkShips, atkWeap)
+    defender = CombatEntity(defShips, defWeap)
+    
+    # Combat Loop
+    while defender.isAlive() and attacker.isAlive():
+        if defender.isAlive():
+            attacker.takeHit(defender.doAttack())
+            if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
+        else:
+            print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
+            break
+        if attacker.isAlive():
+            defender.takeHit(attacker.doAttack())
+            if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
+        else: 
+            print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
+
+
+class CombatEntity:
+    ships = 0
+    weapons = 1
+    
+    def __init__(self, Ships, WeaponLevel):
+        self.ships = Ships
+        self.weapons = WeaponLevel
+        
+    def doAttack(self):
+        if(self.ships > 0):
+            return self.weapons
+        else:
+            return 0
+    
+    def takeHit(self, damage):
+        self.ships = self.ships-damage
+        if self.ships < 0:
+            self.ships = 0
+        return self.ships
+    
+    def isAlive(self):
+        if self.ships > 0:
+            return True
+        return False
+
 
 class InputParameter:
     inputMessage = "Default Input: "
@@ -45,6 +101,7 @@ def tryInput(message="", ValType=int):
 
 def menu():
     keepRunningMenu = True
+    
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         params = [
@@ -56,7 +113,7 @@ def menu():
         
         for p in params:
             p.tryInput()
-        manu(params)
+        manu(paramArray=params)
         
     def researchInput():
         print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
@@ -76,14 +133,55 @@ Blessing: """, int, 0), #Racial Trait
         for p in params:
             p.tryInput()
         planResearch(params)
+        
+    def combatInput():
+        print('Standard combat')
+        params = [
+            InputParameter("Attacker Ships: "),
+            InputParameter("Attacker Weapons: "),
+            InputParameter("Defender Ships: "),
+            InputParameter("Defender Weapons: ")
+        ]
+        for p in params:
+            p.tryInput()
+        basicCombat(paramArray=params)
+        
+    def combatWithDistance():
+        # Input
+        print("Calculate how many ships will be built by the time of arrival.")
+        ticks = InputParameter("How many hours till arrival: ").tryInput()
+        industry = InputParameter("Star's Total Industry: ").tryInput()
+        manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
+        weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
+        starShips = InputParameter("Star's Current Ships: ").tryInput()
+        print(15*'-')
+        AttackerShips = InputParameter("Attacker Ships: ").tryInput()
+        AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
+        # Calculate
+        # Defender Ships at Arrival
+        perTick = manu(industry, manuLevel, 0, 0, None, True)
+        shipsAtArrival = starShips + (perTick*ticks)
+        
+        # Display
+        print(f"""
+            Hours Till Arrival:         {ticks} Hours
+            Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
+            Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
+""")
+        print(30*'-')
+        basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
+        
+        
     
     while keepRunningMenu == True:
         print(f"""
-              {20*'-'}
+--------------{20*'-'}
               Select a menu option.
               
               [0] Manufacturing
               [1] Research
+              [2] Basic Combat Calculator
+              [3] Distance Based Combat Calculator
               """)
         
         try:
@@ -97,72 +195,50 @@ Blessing: """, int, 0), #Racial Trait
                 manuInput()
             if menuInput ==  1:
                 researchInput()
+            if menuInput ==  2:
+                combatInput()
+            if menuInput ==  3:
+                combatWithDistance()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
         
             
 
 
-def manu(paramArray):
-    industry = paramArray[0].inputValue
-    TechLevel = paramArray[1].inputValue
-    currentShips = paramArray[2].inputValue
-    planLevel = paramArray[3].inputValue
+def manu(industry=None, 
+         TechLevel=None, 
+         currentShips=None, 
+         planLevel=None, 
+         paramArray=None, 
+         returnPerTick=False):
+    if(paramArray != None):
+        
+        industry = paramArray[0].inputValue
+        TechLevel = paramArray[1].inputValue
+        currentShips = paramArray[2].inputValue
+        planLevel = paramArray[3].inputValue
     
     total = industry * (TechLevel+4)
     perTick = (total / 24)
     EstimatedShips = total*planLevel+currentShips
     
-    print(f"Today : \t{currentShips} Ships")
-    for level in range(1,planLevel+1):
-        shipPerLevel = total*(level) + currentShips
-        levelStr = f"{simplifyDays(level)}: \t{shipPerLevel} Ships"
-        print(levelStr)
-    
-    
-    printString = f"""
-Ships Per Production Cycle: \t{total}
-Ships Per Hour Tick:        \t{perTick:.2f}
-Current Ships:              \t{currentShips}
-Ships in {planLevel} days:        \t{EstimatedShips}
-
-"""
-    print(printString)
-
-def simplifyHours(hours, dayFormatting=False):
-    # Days
-    days = 0
-    if(hours>=24):
-        days = hours//24
-    finalDaysStr = '' #0 days
-    dayStr = "Day"
-    if days > 1:
-        dayStr = "Days"
-    if(days > 0):
-        finalDaysStr = f"{days} {dayStr} " # 1 day (s)
-    
-    # Hours
-    hrs = hours%24
-    finalHourStr = '' #0 hours
-    hrStr = "Hour"
-    if hrs > 1:
-        hrStr = "Hours"
-    if(hrs > 0): 
-        finalHourStr = f"{hrs} {hrStr}" # 1 hour (s)
-    
-    # Edge case formatting
-    if days == 1 and hrs == 0:
-        if(dayFormatting):
-            return "1 Day    "
-        else:
-            return "1 Day  "
-    
-    # String Return
-    return f"{finalDaysStr}{finalHourStr}"
-
-def simplifyDays(days):
-    hours = days*24
-    return simplifyHours(hours)
+    if not returnPerTick:
+        print(f"Today : \t{currentShips} Ships")
+        for level in range(1,planLevel+1):
+            shipPerLevel = total*(level) + currentShips
+            levelStr = f"{simplifyDays(level)}: \t{shipPerLevel} Ships"
+            print(levelStr)
+        
+        
+        printString = f"""
+    Ships Per Production Cycle: \t{total}
+    Ships Per Hour Tick:        \t{perTick:.2f}
+    Current Ships:              \t{currentShips}
+    Ships in {planLevel} days:        \t{EstimatedShips}
+    """
+        print(printString)
+    if returnPerTick:
+        return perTick 
 
 def planResearch(paramArray):
     TotalScience = paramArray[0].inputValue
@@ -222,4 +298,40 @@ Level {CurrentLevel+3}:\t{EstimatedHours+researchTime(TotalScience,CurrentLevel+
         print(OutputString)
     return EstimatedHours
 
+#region --- Formatting Functions ---
+def simplifyHours(hours, dayFormatting=False):
+    # Days
+    days = 0
+    if(hours>=24):
+        days = hours//24
+    finalDaysStr = '' #0 days
+    dayStr = "Day"
+    if days > 1:
+        dayStr = "Days"
+    if(days > 0):
+        finalDaysStr = f"{days} {dayStr} " # 1 day (s)
+    
+    # Hours
+    hrs = hours%24
+    finalHourStr = '' #0 hours
+    hrStr = "Hour"
+    if hrs > 1:
+        hrStr = "Hours"
+    if(hrs > 0): 
+        finalHourStr = f"{hrs} {hrStr}" # 1 hour (s)
+    
+    # Edge case formatting
+    if days == 1 and hrs == 0:
+        if(dayFormatting):
+            return "1 Day    "
+        else:
+            return "1 Day  "
+    
+    # String Return
+    return f"{finalDaysStr}{finalHourStr}"
+
+def simplifyDays(days):
+    hours = days*24
+    return simplifyHours(hours)
+#endregion --- Formatting Functions ---
 menu()
