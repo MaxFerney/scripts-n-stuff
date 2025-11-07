@@ -154,22 +154,29 @@ Blessing: """, int, 0), #Racial Trait
         manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
         weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
         starShips = InputParameter("Star's Current Ships: ").tryInput()
-        print(15*'-')
-        AttackerShips = InputParameter("Attacker Ships: ").tryInput()
-        AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
-        # Calculate
-        # Defender Ships at Arrival
+        # Calculate Combat Too?
+        attackPlans = InputParameter("Include Attack Calculations (y/[n])? ", str, 'n').tryInput()
+        if attackPlans == 'y':
+            print(15*'-')
+            AttackerShips = InputParameter("Attacker Ships: ").tryInput()
+            AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
+        
+        # Calculation
         perTick = manu(industry, manuLevel, 0, 0, None, True)
+        # Defender Ships at Arrival
         shipsAtArrival = starShips + (perTick*ticks)
         
         # Display
         print(f"""
             Hours Till Arrival:         {ticks} Hours
             Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
-            Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
 """)
-        print(30*'-')
-        basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
+        if attackPlans:
+            print(
+f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
+""")
+            print(30*'-')
+            basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
         
         
     
@@ -182,6 +189,7 @@ Blessing: """, int, 0), #Racial Trait
               [1] Research
               [2] Basic Combat Calculator
               [3] Distance Based Combat Calculator
+              WIP - How many ships needed to conquer
               """)
         
         try:
