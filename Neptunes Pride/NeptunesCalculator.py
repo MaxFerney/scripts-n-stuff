@@ -19,6 +19,12 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
     attacker = CombatEntity(atkShips, atkWeap)
     defender = CombatEntity(defShips, defWeap)
     
+    if(debug):
+        print("Attacker")
+        print(attacker)
+        print("Defender")
+        print(defender)
+    
     # Combat Loop
     while defender.isAlive() and attacker.isAlive():
         if defender.isAlive():
@@ -32,6 +38,8 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
             if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
         else: 
             print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
+        if not defender.isAlive():
+            print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
 
 
 class CombatEntity:
@@ -58,6 +66,15 @@ class CombatEntity:
         if self.ships > 0:
             return True
         return False
+    
+    def __str__(self):
+        return f"""
+## Combat Entity ##
+{self.ships} Ships
+{self.weapons} Weapons
+###################
+
+"""
 
 
 class InputParameter:
@@ -66,10 +83,10 @@ class InputParameter:
     inputValue = None
     inputType = int
     
-    def __init__(self, message, type=int, value=None):
+    def __init__(self, message, type=int, defaultValue=None):
         self.inputMessage = message
         self.inputType = type
-        self.inputValue = value
+        self.inputValue = defaultValue
         
         # self.tryInput()
     
@@ -155,7 +172,7 @@ Blessing: """, int, 0), #Racial Trait
         weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
         starShips = InputParameter("Star's Current Ships: ").tryInput()
         # Calculate Combat Too?
-        attackPlans = InputParameter("Include Attack Calculations (y/[n])? ", str, 'n').tryInput()
+        attackPlans = InputParameter("Include Attack Calculations ([y]/n)? ", str, 'y').tryInput()
         if attackPlans == 'y':
             print(15*'-')
             AttackerShips = InputParameter("Attacker Ships: ").tryInput()
@@ -171,7 +188,7 @@ Blessing: """, int, 0), #Racial Trait
             Hours Till Arrival:         {ticks} Hours
             Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
 """)
-        if attackPlans:
+        if attackPlans == 'y':
             print(
 f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
 """)
