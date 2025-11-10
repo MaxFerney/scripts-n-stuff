@@ -3,6 +3,7 @@ import math
 global debug
 
 debug = False
+# Todo: Input Enemy Stats. I wanna save luke's stats to a session. then cut down on questions.
 
 def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
     # Input Translation
@@ -16,8 +17,8 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
     defWeap = defWeap+1 
 
     # Create Entities
-    attacker = CombatEntity(atkShips, atkWeap)
-    defender = CombatEntity(defShips, defWeap)
+    attacker = CombatEntity(atkShips, atkWeap, "Attacker")
+    defender = CombatEntity(defShips, defWeap, "Defender")
     
     if(debug):
         print("Attacker")
@@ -30,31 +31,40 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
         if defender.isAlive():
             attacker.takeHit(defender.doAttack())
             if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
-        else:
-            print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
-            break
         if attacker.isAlive():
             defender.takeHit(attacker.doAttack())
             if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
-        else: 
-            print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
+        else:
+            defender.winString()
+            break
+            # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
         if not defender.isAlive():
-            print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
+            attacker.winString()
+            break
+            # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
 
+# Stores player stats to cut down on number of inputs.
+class Player:
+    pass
 
 class CombatEntity:
     ships = 0
     weapons = 1
+    title = "Default Title"
     
-    def __init__(self, Ships, WeaponLevel):
+    def __init__(self, Ships, WeaponLevel, Title):
         self.ships = Ships
         self.weapons = WeaponLevel
+        self.title = Title
         
     def doAttack(self):
         if(self.ships > 0):
             return self.weapons
         else:
             return 0
+    
+    def winString(self):
+        print(f'\n{self.title} wins with {self.ships:.2f} ships remaining!')
     
     def takeHit(self, damage):
         self.ships = self.ships-damage
@@ -69,11 +79,10 @@ class CombatEntity:
     
     def __str__(self):
         return f"""
-## Combat Entity ##
+## Combat Entity <{self.title}> ##
 {self.ships} Ships
 {self.weapons} Weapons
-###################
-
+######################{len(self.title)*'#'}
 """
 
 
@@ -172,11 +181,10 @@ Blessing: """, int, 0), #Racial Trait
         weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
         starShips = InputParameter("Star's Current Ships: ").tryInput()
         # Calculate Combat Too?
-        attackPlans = InputParameter("Include Attack Calculations ([y]/n)? ", str, 'y').tryInput()
-        if attackPlans == 'y':
-            print(15*'-')
-            AttackerShips = InputParameter("Attacker Ships: ").tryInput()
-            AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
+        
+        print(15*'-')
+        AttackerShips = InputParameter("Attacker Ships: ").tryInput()
+        AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
         
         # Calculation
         perTick = manu(industry, manuLevel, 0, 0, None, True)
@@ -188,12 +196,12 @@ Blessing: """, int, 0), #Racial Trait
             Hours Till Arrival:         {ticks} Hours
             Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
 """)
-        if attackPlans == 'y':
-            print(
+        
+        print(
 f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
 """)
-            print(30*'-')
-            basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
+        print(30*'-')
+        basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
         
         
     
