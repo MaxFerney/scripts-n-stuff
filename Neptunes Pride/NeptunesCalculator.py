@@ -1,8 +1,10 @@
 import math
 
-global debug
+global debug, Players
 
-debug = False
+
+
+
 # Todo: Input Enemy Stats. I wanna save luke's stats to a session. then cut down on questions.
 
 def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
@@ -45,7 +47,68 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
 
 # Stores player stats to cut down on number of inputs.
 class Player:
-    pass
+    PlayerName = "Player Name"
+    Banking = 1
+    Experimentation = 1
+    Manufacturing = 1
+    Range = 1
+    Weapons = 1
+    
+    TotalEconomy = 1
+    TotalScience = 1
+    TotalIndustry = 1
+    
+    def __init__(self, name="Player Name", 
+                 bank=1,
+                 exp=1,
+                 manu=1,
+                 range=1,
+                 weap=1,
+                 TotalEco=1,
+                 TotalInd=1,
+                 TotalSci=1):
+        self.PlayerName = name
+        self.Banking = bank
+        self.Experimentation = exp
+        self.Manufacturing = manu
+        self.Range = range
+        self.Weapons = weap
+        self.TotalEconomy = TotalEco
+        self.TotalIndustry = TotalInd
+        self.TotalScience = TotalSci
+    
+    def InputResearch(self):
+        self.Banking = InputParameter("Banking Level: ", int, 1).tryInput()
+        self.Experimentation = InputParameter("Experimentation Level: ", int, 1).tryInput()
+        self.Manufacturing = InputParameter("Manufacturing Level: ", int, 1).tryInput()
+        self.Range = InputParameter("Range Level: ", int, 1).tryInput()
+        self.Weapons = InputParameter("Weapons Level: ", int, 1).tryInput()
+        
+    def InputTotals(self):
+        self.TotalEconomy = InputParameter("Total Economy: ", int, 1).tryInput()
+        self.TotalIndustry = InputParameter("Total Industry: ", int, 1).tryInput()
+        self.TotalScience = InputParameter("Total Science: ", int, 1).tryInput()
+    
+    def InputInfo(self):
+        self.PlayerName = InputParameter("PlayerName", str)
+    
+    def __str__(self):
+        return f"""
+    ====================================
+    Player Overview: [{self.PlayerName}]
+    
+    Banking:            {self.Banking}
+    Experimentation:    {self.Experimentation}
+    Manufacturing:      {self.Manufacturing}
+    Range:              {self.Range}
+    Weapons:            {self.Weapons}
+    
+    Total Economy:      {self.TotalEconomy}
+    Total Industry:     {self.TotalIndustry}
+    Total Science:      {self.TotalScience}
+    ====================================
+    """
+
 
 class CombatEntity:
     ships = 0
@@ -85,7 +148,6 @@ class CombatEntity:
 ######################{len(self.title)*'#'}
 """
 
-
 class InputParameter:
     inputMessage = "Default Input: "
     # If passed in on creation - will handle NoneType input, and use said default.    
@@ -107,11 +169,13 @@ class InputParameter:
         
         while True:
             try:
-                val = ValType(input(message))
+                val = input(message)
                 # If none, use default
-                if val == None:
+                if val == '':
                     if debug: print(f"DEBUG | using default: {this.inputValue}")
                     val = this.inputValue
+                else: #Run Conversion
+                    val = ValType(val)
                 # Set this.inputValue to the latest input
                 this.inputValue = val
                 return val
@@ -125,8 +189,44 @@ def tryInput(message="", ValType=int):
         except ValueError:
             print("Invalid type. Please try again.")
 
+# Global Definitions
+debug = False
+Players = [
+    Player("Dovah Kro",
+           31,22,38,19,31,
+           1055,810,375),
+    Player("HelloLuke",
+           23,17,22,14,33,
+           1218,1006,200)
+]
+
+def getPlayers():
+    for player in Players:
+        print(player)
+        
+def getPlayer(playerName=None, Index=None):
+    if playerName != None:
+        for p in Players:
+            if p.PlayerName.lower() == playerName.lower():
+                return p
+    if Index != None:
+        return Players[Index]
+    else:
+        return NotImplementedError
+    
+    
+
 def menu():
     keepRunningMenu = True
+    attacker = Players[0]
+    defender = Players[1]
+    
+    def PlayerInput():
+        newPlayer = Player()
+        newPlayer.InputInfo()
+        newPlayer.InputResearch()
+        newPlayer.InputTotals()
+        Players.append(newPlayer)
     
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
@@ -173,18 +273,29 @@ Blessing: """, int, 0), #Racial Trait
         basicCombat(paramArray=params)
         
     def combatWithDistance():
+        pSet = False
         # Input
+        UsePlayerSettings = InputParameter("Use Attacker/Defender Settings? ([y]/n)",str,'y').tryInput()
+        if UsePlayerSettings == 'y':
+            pSet = True
         print("Calculate how many ships will be built by the time of arrival.")
         ticks = InputParameter("How many hours till arrival: ").tryInput()
         industry = InputParameter("Star's Total Industry: ").tryInput()
-        manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
-        weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
+        if(not pSet):
+            manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
+            weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
+        else:
+            manuLevel = defender.Manufacturing
+            weapLevel = defender.Weapons
         starShips = InputParameter("Star's Current Ships: ").tryInput()
         # Calculate Combat Too?
         
         print(15*'-')
         AttackerShips = InputParameter("Attacker Ships: ").tryInput()
-        AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
+        if(not pSet):
+            AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
+        else:
+            AttackerWeaps = attacker.Weapons
         
         # Calculation
         perTick = manu(industry, manuLevel, 0, 0, None, True)
@@ -203,6 +314,13 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
         print(30*'-')
         basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
         
+    def roleInput():
+        getPlayers()
+        print("Players [Index] | Player Name")
+        for index, p in enumerate(Players):
+            print(f"[{index}] | {p.PlayerName}")
+        attacker = getPlayer(Index=InputParameter("Attacker | Player Index: ", int).tryInput())
+        defender = getPlayer(Index=InputParameter("Defender | Player Index: ", int).tryInput())
         
     
     while keepRunningMenu == True:
@@ -214,6 +332,8 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
               [1] Research
               [2] Basic Combat Calculator
               [3] Distance Based Combat Calculator
+              [4] Player Input
+              [5] Role Input (who is attacker or defender)
               WIP - How many ships needed to conquer
               """)
         
@@ -232,6 +352,10 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
                 combatInput()
             if menuInput ==  3:
                 combatWithDistance()
+            if menuInput ==  4:
+                PlayerInput()
+            if menuInput ==  5:
+                roleInput()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
         
