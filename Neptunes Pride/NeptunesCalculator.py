@@ -207,28 +207,29 @@ def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None, S
             if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
         else:
             if ShowCombatLogs: defender.winString()
-            return "Defender"
+            return defender
             # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
         if not defender.isAlive():
             if ShowCombatLogs: attacker.winString()
-            return "Attacker"
+            return attacker
             # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
 
 def shipsToWin(DefShips, DefWeap, AtkWeap):
-    StarterAtkShips =  0
-    if(DefWeap >= AtkWeap):
-        StarterAtkShips = DefShips
-    else:
-        StarterAtkShips = (DefShips // AtkWeap) * DefWeap
-    winner = "Defender"
+    StarterAtkShips = ((DefShips * (DefWeap+1)) // AtkWeap) + (DefWeap+1) #Thanks Coret
+    
     while True:
         winner = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
-        if winner == "Defender":
+        if winner.title == "Defender": #Defender Wins. Try Again.
+            print(f"[{StarterAtkShips}] + {AtkWeap} = {StarterAtkShips+AtkWeap}")
             StarterAtkShips += AtkWeap
-        else:
+        else: # Attacker Wins. Return Ship Margin of Victory.
             print(f"It took around {StarterAtkShips} Ships to Win!")
-            basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
-            return StarterAtkShips
+            winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
+            SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
+            print(f"\nTherefore, the absolute minimum number of \n\
+    ships to win is [{SingleShipRemaining}] with a single ship remaining!")
+            # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
+            return SingleShipRemaining #Should return Minimum number of ships
 
 def menu():
     keepRunningMenu = True
@@ -289,7 +290,7 @@ Blessing: """, int, 0), #Racial Trait
     def combatWithDistance():
         pSet = False
         # Input
-        UsePlayerSettings = InputParameter("Use Attacker/Defender Settings? ([y]/n)",str,'y').tryInput()
+        UsePlayerSettings = InputParameter("Use Player Settings? ([y]/n)",str,'y').tryInput()
         if UsePlayerSettings == 'y':
             pSet = True
         print("Calculate how many ships will be built by the time of arrival.")
@@ -305,7 +306,7 @@ Blessing: """, int, 0), #Racial Trait
         # Calculate Combat Too?
         
         print(15*'-')
-        AttackerShips = InputParameter("Attacker Ships: ").tryInput()
+        # AttackerShips = InputParameter("Attacker Ships: ").tryInput()
         if(not pSet):
             AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
         else:
@@ -315,18 +316,20 @@ Blessing: """, int, 0), #Racial Trait
         perTick = manu(industry, manuLevel, 0, 0, None, True)
         # Defender Ships at Arrival
         shipsAtArrival = starShips + (perTick*ticks)
-        
+        # Attacker Ships needed to win
+        shipsToConquer = shipsToWin(shipsAtArrival, weapLevel, AttackerWeaps)
         # Display
         print(f"""
             Hours Till Arrival:         {ticks} Hours
             Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
+            Ships to Conquer            {shipsToConquer} Ships [W{AttackerWeaps}]
 """)
         
-        print(
-f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
-""")
-        print(30*'-')
-        basicCombat(AttackerShips, AttackerWeaps, shipsAtArrival, weapLevel)
+#         print(
+# f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
+# """)
+        print(30*'v')
+        basicCombat(shipsToConquer, AttackerWeaps, shipsAtArrival, weapLevel)
         
     def roleInput():
         getPlayers()
