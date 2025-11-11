@@ -7,43 +7,6 @@ global debug, Players
 
 # Todo: Input Enemy Stats. I wanna save luke's stats to a session. then cut down on questions.
 
-def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None):
-    # Input Translation
-    if paramArray != None:
-        atkShips = paramArray[0].inputValue
-        atkWeap = paramArray[1].inputValue
-        defShips = paramArray[2].inputValue
-        defWeap = paramArray[3].inputValue
-    
-    # Defender Bonus
-    defWeap = defWeap+1 
-
-    # Create Entities
-    attacker = CombatEntity(atkShips, atkWeap, "Attacker")
-    defender = CombatEntity(defShips, defWeap, "Defender")
-    
-    if(debug):
-        print("Attacker")
-        print(attacker)
-        print("Defender")
-        print(defender)
-    
-    # Combat Loop
-    while defender.isAlive() and attacker.isAlive():
-        if defender.isAlive():
-            attacker.takeHit(defender.doAttack())
-            if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
-        if attacker.isAlive():
-            defender.takeHit(attacker.doAttack())
-            if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
-        else:
-            defender.winString()
-            break
-            # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
-        if not defender.isAlive():
-            attacker.winString()
-            break
-            # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
 
 # Stores player stats to cut down on number of inputs.
 class Player:
@@ -108,7 +71,6 @@ class Player:
     Total Science:      {self.TotalScience}
     ====================================
     """
-
 
 class CombatEntity:
     ships = 0
@@ -193,11 +155,11 @@ def tryInput(message="", ValType=int):
 debug = False
 Players = [
     Player("Dovah Kro",
-           31,22,38,19,31,
-           1055,810,375),
+           32,22,41,19,33,
+           1249,917,417),
     Player("HelloLuke",
-           23,17,22,14,33,
-           1218,1006,200)
+           23,18,24,16,33,
+           1224,982,226)
 ]
 
 def getPlayers():
@@ -214,7 +176,59 @@ def getPlayer(playerName=None, Index=None):
     else:
         return NotImplementedError
     
+def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None, ShowCombatLogs=True):
+    # Input Translation
+    if paramArray != None:
+        atkShips = paramArray[0].inputValue
+        atkWeap = paramArray[1].inputValue
+        defShips = paramArray[2].inputValue
+        defWeap = paramArray[3].inputValue
     
+    # Defender Bonus
+    defWeap = defWeap+1 
+
+    # Create Entities
+    attacker = CombatEntity(atkShips, atkWeap, "Attacker")
+    defender = CombatEntity(defShips, defWeap, "Defender")
+    
+    if(debug):
+        print("Attacker")
+        print(attacker)
+        print("Defender")
+        print(defender)
+    
+    # Combat Loop
+    while defender.isAlive() and attacker.isAlive():
+        if defender.isAlive():
+            attacker.takeHit(defender.doAttack())
+            if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
+        if attacker.isAlive():
+            defender.takeHit(attacker.doAttack())
+            if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
+        else:
+            if ShowCombatLogs: defender.winString()
+            return "Defender"
+            # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
+        if not defender.isAlive():
+            if ShowCombatLogs: attacker.winString()
+            return "Attacker"
+            # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
+
+def shipsToWin(DefShips, DefWeap, AtkWeap):
+    StarterAtkShips =  0
+    if(DefWeap >= AtkWeap):
+        StarterAtkShips = DefShips
+    else:
+        StarterAtkShips = (DefShips // AtkWeap) * DefWeap
+    winner = "Defender"
+    while True:
+        winner = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
+        if winner == "Defender":
+            StarterAtkShips += AtkWeap
+        else:
+            print(f"It took around {StarterAtkShips} Ships to Win!")
+            basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
+            return StarterAtkShips
 
 def menu():
     keepRunningMenu = True
@@ -321,7 +335,13 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
             print(f"[{index}] | {p.PlayerName}")
         attacker = getPlayer(Index=InputParameter("Attacker | Player Index: ", int).tryInput())
         defender = getPlayer(Index=InputParameter("Defender | Player Index: ", int).tryInput())
+    
+    def shipsToAttackInput():
+        defShip = InputParameter("Defender's Total Ships: ").tryInput() 
+        defWeap = InputParameter("Defender's Weapons Level: ").tryInput() 
+        atkWeap = InputParameter("Attacker's Weapons Level: ").tryInput()
         
+        shipsToWin(defShip,defWeap,atkWeap)
     
     while keepRunningMenu == True:
         print(f"""
@@ -334,6 +354,7 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
               [3] Distance Based Combat Calculator
               [4] Player Input
               [5] Role Input (who is attacker or defender)
+              [6] Ships To Conquer
               WIP - How many ships needed to conquer
               """)
         
@@ -356,6 +377,8 @@ f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
                 PlayerInput()
             if menuInput ==  5:
                 roleInput()
+            if menuInput ==  6:
+                shipsToAttackInput()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
         
