@@ -134,8 +134,12 @@ class InputParameter:
                 val = input(message)
                 # If none, use default
                 if val == '':
+                    #If no default, throw error
+                    if (this.inputValue == None):
+                        raise ValueError()
                     if debug: print(f"DEBUG | using default: {this.inputValue}")
                     val = this.inputValue
+                
                 else: #Run Conversion
                     val = ValType(val)
                 # Set this.inputValue to the latest input
@@ -155,12 +159,16 @@ def tryInput(message="", ValType=int):
 debug = False
 Players = [
     Player("Dovah Kro",
-           32,22,41,19,33,
-           1249,917,417),
+           32,22,41,23,36,
+           1249,1014,417),
     Player("HelloLuke",
-           23,18,24,16,33,
-           1224,982,226)
+           23,18,24,16,34,
+           1224,975,226),
+    Player("Homeless man",
+           23,19,25,15,24,
+           1224,975,226)
 ]
+
 
 def getPlayers():
     for player in Players:
@@ -226,15 +234,21 @@ def shipsToWin(DefShips, DefWeap, AtkWeap):
             print(f"It took around {StarterAtkShips} Ships to Win!")
             winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
             SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
+            
             print(f"\nTherefore, the absolute minimum number of \n\
     ships to win is [{SingleShipRemaining}] with a single ship remaining!")
             # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
             return SingleShipRemaining #Should return Minimum number of ships
 
+
 def menu():
     keepRunningMenu = True
     attacker = Players[0]
-    defender = Players[1]
+    print("#"*20)
+    print(f"Attacker: {attacker.PlayerName}")
+    defender = Players[2]
+    print(f"Defender: {defender.PlayerName}")
+    print("#"*20)
     
     def PlayerInput():
         newPlayer = Player()
@@ -347,6 +361,16 @@ Blessing: """, int, 0), #Racial Trait
         shipsToWin(defShip,defWeap,atkWeap)
     
     while keepRunningMenu == True:
+        print("""
+#name: ships industry hours (delay hours) shipsToSend #ROUTE
+#death sweet embrace: 912 11 20 (x) 900
+#small child: 205 7 24 (x) 350 #DEATH
+#alamo: 2735 7 16 (x) 2050.0
+#college: 4838 10 17 (x) 3600.0
+#low star: 191 2 24 (x) 200.0 #COMMUNITY
+#runecrafting: 3898 10 29 (x) 3000.0 #COMMUNITY
+#doodlebros: 650 10 29 (x) 750.0 #DEATH
+""")
         print(f"""
 --------------{20*'-'}
               Select a menu option.
