@@ -10,7 +10,7 @@ global debug, Players
 
 # Stores player stats to cut down on number of inputs.
 class Player:
-    PlayerName = "Player Name"
+    PlayerName:str = "Player Name"
     Banking = 1
     Experimentation = 1
     Manufacturing = 1
@@ -53,7 +53,7 @@ class Player:
         self.TotalScience = InputParameter("Total Science: ", int, 1).tryInput()
     
     def InputInfo(self):
-        self.PlayerName = InputParameter("PlayerName", str)
+        self.PlayerName = InputParameter("PlayerName").tryInput()
     
     def __str__(self):
         return f"""
@@ -114,20 +114,20 @@ class InputParameter:
     inputMessage = "Default Input: "
     # If passed in on creation - will handle NoneType input, and use said default.    
     inputValue = None
-    inputType = int
+    inputType:type = int
     
-    def __init__(self, message, type=int, defaultValue=None):
+    def __init__(self, message, type:type=int, defaultValue=None):
         self.inputMessage = message
         self.inputType = type
         self.inputValue = defaultValue
         
         # self.tryInput()
     
-    def tryInput(this, message=None, ValType=None):
+    def tryInput(self, message=None, ValType=None):
         if message == None:
-            message = this.inputMessage
+            message = self.inputMessage
         if ValType == None:
-            ValType = this.inputType
+            ValType = self.inputType
         
         while True:
             try:
@@ -135,18 +135,38 @@ class InputParameter:
                 # If none, use default
                 if val == '':
                     #If no default, throw error
-                    if (this.inputValue == None):
+                    if (self.inputValue == None):
                         raise ValueError()
-                    if debug: print(f"DEBUG | using default: {this.inputValue}")
-                    val = this.inputValue
+                    if debug: print(f"DEBUG | using default: {self.inputValue}")
+                    val = self.inputValue
                 
                 else: #Run Conversion
                     val = ValType(val)
-                # Set this.inputValue to the latest input
-                this.inputValue = val
+                # Set self.inputValue to the latest input
+                self.inputValue = val
                 return val
             except ValueError:
                 print("Invalid type. Please try again.")
+
+# for state handling in attack planner
+class AttackPlanEntity:
+    timeToArrive:int
+    planetIndustry:int
+    planetShips:int
+    DefenderPlayer:Player
+    AttackerPlayer:Player
+    
+    delayHours:int|None
+    minShipsToWin:int|None
+    suggestedShipsToWin:int|None #calculated buffer, like +5 industry and +1 weapons on a planet.
+    
+    def __init__(self, ArrivalTime:int, Industry:int, Ships:int, defender:Player, attacker:Player):
+        self.timeToArrive = ArrivalTime
+        self.planetIndustry = Industry
+        self.planetShips = Ships
+        self.DefenderPlayer = defender
+        self.AttackerPlayer = attacker
+        
                 
 def tryInput(message="", ValType=int):
     while True:
@@ -227,27 +247,29 @@ def shipsToWin(DefShips, DefWeap, AtkWeap):
     
     while True:
         winner = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
-        if winner.title == "Defender": #Defender Wins. Try Again.
-            print(f"[{StarterAtkShips}] + {AtkWeap} = {StarterAtkShips+AtkWeap}")
-            StarterAtkShips += AtkWeap
-        else: # Attacker Wins. Return Ship Margin of Victory.
-            print(f"It took around {StarterAtkShips} Ships to Win!")
-            winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
-            SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
+        if (type(winner)==CombatEntity):
+            if winner.title == "Defender": #Defender Wins. Try Again.
+                print(f"[{StarterAtkShips}] + {AtkWeap} = {StarterAtkShips+AtkWeap}")
+                StarterAtkShips += AtkWeap
+            else: # Attacker Wins. Return Ship Margin of Victory.
+                print(f"It took around {StarterAtkShips} Ships to Win!")
+                winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
+                if (type(winMargin)==CombatEntity):
+                    SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
             
-            print(f"\nTherefore, the absolute minimum number of \n\
-    ships to win is [{SingleShipRemaining}] with a single ship remaining!")
+    #         print(f"\nTherefore, the absolute minimum number of \n\
+    # ships to win is [{SingleShipRemaining}] with a single ship remaining!")
             # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
             return SingleShipRemaining #Should return Minimum number of ships
 
 
 def menu():
     keepRunningMenu = True
-    attacker = Players[0]
+    ATTACKER = Players[0]
     print("#"*20)
-    print(f"Attacker: {attacker.PlayerName}")
-    defender = Players[2]
-    print(f"Defender: {defender.PlayerName}")
+    print(f"Attacker: {ATTACKER.PlayerName}")
+    DEFENDER = Players[2]
+    print(f"Defender: {DEFENDER.PlayerName}")
     print("#"*20)
     
     def PlayerInput():
@@ -314,8 +336,8 @@ Blessing: """, int, 0), #Racial Trait
             manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
             weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
         else:
-            manuLevel = defender.Manufacturing
-            weapLevel = defender.Weapons
+            manuLevel = DEFENDER.Manufacturing
+            weapLevel = DEFENDER.Weapons
         starShips = InputParameter("Star's Current Ships: ").tryInput()
         # Calculate Combat Too?
         
@@ -324,7 +346,7 @@ Blessing: """, int, 0), #Racial Trait
         if(not pSet):
             AttackerWeaps = InputParameter("Attacker Weapons: ").tryInput()
         else:
-            AttackerWeaps = attacker.Weapons
+            AttackerWeaps = ATTACKER.Weapons
         
         # Calculation
         perTick = manu(industry, manuLevel, 0, 0, None, True)
@@ -336,16 +358,13 @@ Blessing: """, int, 0), #Racial Trait
         print(f"""
             Hours Till Arrival:         {ticks} Hours
             Defender Ships At Arrival:  {shipsAtArrival:.2f} Ships [W{weapLevel}]
-            Ships to Conquer            {shipsToConquer} Ships [W{AttackerWeaps}]
+            Ships to Conquer (1 ship)   {shipsToConquer} Ships [W{AttackerWeaps}]
 """)
-        
-#         print(
-# f"""Attacker Ships At Arrival:  {AttackerShips:.2f} Ships [W{AttackerWeaps}]
-# """)
         print(30*'v')
         basicCombat(shipsToConquer, AttackerWeaps, shipsAtArrival, weapLevel)
         
     def roleInput():
+        global attacker, defender
         getPlayers()
         print("Players [Index] | Player Name")
         for index, p in enumerate(Players):
@@ -359,6 +378,26 @@ Blessing: """, int, 0), #Racial Trait
         atkWeap = InputParameter("Attacker's Weapons Level: ").tryInput()
         
         shipsToWin(defShip,defWeap,atkWeap)
+    
+    def attackPlanner():
+        print(f"""
+{20*'*'}
+For each attack, need Distance, Industry, and Ships.
+[Uses Player Settings!]
+{20*'*'}
+""")
+        AttacksToPlan = InputParameter("How many Attacks to coordinate?", int, 1).tryInput()
+        AllAttacks = []
+        for a in range(AttacksToPlan):
+            # Plan Inputs
+            initialPlan = AttackPlanEntity()
+            pass
+        # get max distance from set.
+        # go through each attack - modify delay to account for longest
+        # run simulations based on delay
+            #this can be handled within the AttackPlanEntity class
+        # display grid of finalized calculations (stored in each attack entity)
+            #custom function to do a 1 line print for loop display.
     
     while keepRunningMenu == True:
         print("""
@@ -379,9 +418,10 @@ Blessing: """, int, 0), #Racial Trait
               [1] Research
               [2] Basic Combat Calculator
               [3] Distance Based Combat Calculator
-              [4] Player Input
-              [5] Role Input (who is attacker or defender)
+              [4] Player Input (WIP)
+              [5] Role Input (WIP) (who is attacker or defender)
               [6] Ships To Conquer
+              [7] Attack Planner
               WIP - How many ships needed to conquer
               """)
         
@@ -406,16 +446,18 @@ Blessing: """, int, 0), #Racial Trait
                 roleInput()
             if menuInput ==  6:
                 shipsToAttackInput()
+            if menuInput ==  7:
+                attackPlanner()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
         
             
 
 
-def manu(industry=None, 
-         TechLevel=None, 
-         currentShips=None, 
-         planLevel=None, 
+def manu(industry:int=0, 
+         TechLevel:int=0, 
+         currentShips:int=0, 
+         planLevel:int=0, 
          paramArray=None, 
          returnPerTick=False):
     if(paramArray != None):
