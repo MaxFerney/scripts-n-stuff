@@ -1,12 +1,10 @@
+#region imports
 import math
+#endregion imports
 
 global debug, Players
 
-
-
-
-# Todo: Input Enemy Stats. I wanna save luke's stats to a session. then cut down on questions.
-
+#region -- Class Definitions --
 
 # Stores player stats to cut down on number of inputs.
 class Player:
@@ -150,128 +148,89 @@ class InputParameter:
 
 # for state handling in attack planner
 class AttackPlanEntity:
+    starName:str
     timeToArrive:int
     planetIndustry:int
     planetShips:int
     DefenderPlayer:Player
     AttackerPlayer:Player
     
-    delayHours:int|None
+    shipsAtArrival:int|None
+    delayHours:int|None #NOT YET IMPLEMENTED
     minShipsToWin:int|None
     suggestedShipsToWin:int|None #calculated buffer, like +5 industry and +1 weapons on a planet.
     
-    def __init__(self, ArrivalTime:int, Industry:int, Ships:int, defender:Player, attacker:Player):
+    def __init__(self, StarName:str, ArrivalTime:int, Industry:int, Ships:int, defender:Player, attacker:Player):
+        self.starName = StarName
         self.timeToArrive = ArrivalTime
         self.planetIndustry = Industry
         self.planetShips = Ships
         self.DefenderPlayer = defender
         self.AttackerPlayer = attacker
         
-                
-def tryInput(message="", ValType=int):
-    while True:
-        try:
-            return ValType(input(message))
-        except ValueError:
-            print("Invalid type. Please try again.")
+        self.shipsAtArrival = self.estimateShipsAtArrival()
+        self.estimateMinShipsToWin()
+        self.estimateWithMoreTech()
+    
+    # Estimates ships at arrival time based on manufacturing and industry.
+    # Manu:int = Manufacturing level
+    def estimateShipsAtArrival(self, Manu=None):
+        if(Manu==None):
+            Manu = self.DefenderPlayer.Manufacturing
+        # Calculation
+        perTick:int = int(manu(self.planetIndustry, Manu, 0, 0, None, True))
+        # Defender Ships at Arrival
+        shipsAtArrival = self.planetShips + (perTick*self.timeToArrive)
+        return shipsAtArrival
 
+    # Estimate minimum ships to win
+    def estimateMinShipsToWin(self):
+        shipsAtArrival = self.estimateShipsAtArrival()
+        self.minShipsToWin = shipsToWin(shipsAtArrival, self.DefenderPlayer.Weapons, self.AttackerPlayer.Weapons, False)
+    
+    # Estimates minimum ships to win with defender bonus of [manu+1] and [weapons+1]
+    def estimateWithMoreTech(self):
+        shipsAtArrival = self.estimateShipsAtArrival(self.DefenderPlayer.Manufacturing+1)
+        self.suggestedShipsToWin = shipsToWin(shipsAtArrival, self.DefenderPlayer.Weapons+1, self.AttackerPlayer.Weapons, False)
+
+    def __str__(self):
+        return f"{self.suggestedShipsToWin}\t{self.minShipsToWin}\t{self.timeToArrive}\t{self.shipsAtArrival}\t{self.starName}[W{self.DefenderPlayer.Weapons}]"
+
+#endregion -- Class Definitions --
+
+#region -- Global Definitions --
 # Global Definitions
 debug = False
 Players = [
     Player("Dovah Kro",
-           32,22,41,23,36,
-           1249,1014,417),
+           33,22,49,23,37,
+           1828,1423,607),
     Player("HelloLuke",
            23,18,24,16,34,
            1224,975,226),
     Player("Homeless man",
            23,19,25,15,24,
-           1224,975,226)
+           1224,975,226),
+    Player("AlbertMungus",
+           39,22,44,19,35,
+           603,982,255)
 ]
+#endregion -- Global Definitions --
 
-
-def getPlayers():
-    for player in Players:
-        print(player)
-        
-def getPlayer(playerName=None, Index=None):
-    if playerName != None:
-        for p in Players:
-            if p.PlayerName.lower() == playerName.lower():
-                return p
-    if Index != None:
-        return Players[Index]
-    else:
-        return NotImplementedError
-    
-def basicCombat(atkShips=0, atkWeap=0, defShips=0, defWeap=0, paramArray=None, ShowCombatLogs=True):
-    # Input Translation
-    if paramArray != None:
-        atkShips = paramArray[0].inputValue
-        atkWeap = paramArray[1].inputValue
-        defShips = paramArray[2].inputValue
-        defWeap = paramArray[3].inputValue
-    
-    # Defender Bonus
-    defWeap = defWeap+1 
-
-    # Create Entities
-    attacker = CombatEntity(atkShips, atkWeap, "Attacker")
-    defender = CombatEntity(defShips, defWeap, "Defender")
-    
-    if(debug):
-        print("Attacker")
-        print(attacker)
-        print("Defender")
-        print(defender)
-    
-    # Combat Loop
-    while defender.isAlive() and attacker.isAlive():
-        if defender.isAlive():
-            attacker.takeHit(defender.doAttack())
-            if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
-        if attacker.isAlive():
-            defender.takeHit(attacker.doAttack())
-            if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
-        else:
-            if ShowCombatLogs: defender.winString()
-            return defender
-            # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
-        if not defender.isAlive():
-            if ShowCombatLogs: attacker.winString()
-            return attacker
-            # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
-
-def shipsToWin(DefShips, DefWeap, AtkWeap):
-    StarterAtkShips = ((DefShips * (DefWeap+1)) // AtkWeap) + (DefWeap+1) #Thanks Coret
-    
-    while True:
-        winner = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
-        if (type(winner)==CombatEntity):
-            if winner.title == "Defender": #Defender Wins. Try Again.
-                print(f"[{StarterAtkShips}] + {AtkWeap} = {StarterAtkShips+AtkWeap}")
-                StarterAtkShips += AtkWeap
-            else: # Attacker Wins. Return Ship Margin of Victory.
-                print(f"It took around {StarterAtkShips} Ships to Win!")
-                winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=True)
-                if (type(winMargin)==CombatEntity):
-                    SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
-            
-    #         print(f"\nTherefore, the absolute minimum number of \n\
-    # ships to win is [{SingleShipRemaining}] with a single ship remaining!")
-            # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
-            return SingleShipRemaining #Should return Minimum number of ships
-
+#region -- MENU --
 
 def menu():
+    #region ---- Initial Display ----
     keepRunningMenu = True
     ATTACKER = Players[0]
     print("#"*20)
     print(f"Attacker: {ATTACKER.PlayerName}")
-    DEFENDER = Players[2]
+    DEFENDER = Players[3]
     print(f"Defender: {DEFENDER.PlayerName}")
     print("#"*20)
+    #endregion ---- Initial Display ----
     
+    #region ---- input functions ----
     def PlayerInput():
         newPlayer = Player()
         newPlayer.InputInfo()
@@ -387,29 +346,41 @@ For each attack, need Distance, Industry, and Ships.
 {20*'*'}
 """)
         AttacksToPlan = InputParameter("How many Attacks to coordinate?", int, 1).tryInput()
+        
         AllAttacks = []
         for a in range(AttacksToPlan):
             # Plan Inputs
-            initialPlan = AttackPlanEntity()
-            pass
+            starName = InputParameter("Name of star: ", str, "Star Name").tryInput()
+            ticks = InputParameter("How many hours till arrival: ").tryInput()
+            industry = InputParameter("Star's Total Industry: ").tryInput()
+            starShips = InputParameter("Star's Current Ships: ").tryInput()
+            initialPlan = AttackPlanEntity(starName, ticks, industry, starShips, DEFENDER, ATTACKER)
+            AllAttacks.append(initialPlan)
+#return f"{self.suggestedShipsToWin}\t{self.minShipsToWin}\t{self.timeToArrive}\t{self.shipsAtArrival}\t{self.starName}[W{self.DefenderPlayer.Weapons}]"
+        LongestAttack = None
+        print("Suggested | MinShips | ETA | AtArrival | Star Name[Weapon]")
+        for Attack in AllAttacks:
+            print(Attack)
         # get max distance from set.
         # go through each attack - modify delay to account for longest
         # run simulations based on delay
             #this can be handled within the AttackPlanEntity class
         # display grid of finalized calculations (stored in each attack entity)
             #custom function to do a 1 line print for loop display.
+    #endregion ---- input functions ----
     
+    #region ---- menu loop ----
     while keepRunningMenu == True:
-        print("""
-#name: ships industry hours (delay hours) shipsToSend #ROUTE
-#death sweet embrace: 912 11 20 (x) 900
-#small child: 205 7 24 (x) 350 #DEATH
-#alamo: 2735 7 16 (x) 2050.0
-#college: 4838 10 17 (x) 3600.0
-#low star: 191 2 24 (x) 200.0 #COMMUNITY
-#runecrafting: 3898 10 29 (x) 3000.0 #COMMUNITY
-#doodlebros: 650 10 29 (x) 750.0 #DEATH
-""")
+#         print("""
+# #name: ships industry hours (delay hours) shipsToSend #ROUTE
+# #death sweet embrace: 912 11 20 (x) 900
+# #small child: 205 7 24 (x) 350 #DEATH
+# #alamo: 2735 7 16 (x) 2050.0
+# #college: 4838 10 17 (x) 3600.0
+# #low star: 191 2 24 (x) 200.0 #COMMUNITY
+# #runecrafting: 3898 10 29 (x) 3000.0 #COMMUNITY
+# #doodlebros: 650 10 29 (x) 750.0 #DEATH
+# """)
         print(f"""
 --------------{20*'-'}
               Select a menu option.
@@ -450,16 +421,95 @@ For each attack, need Distance, Industry, and Ships.
                 attackPlanner()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
+    #endregion ---- menu loop ----
+
+#endregion -- MENU --
+
+#region -- FUNCTIONS --
+
+#region --- Helper Functions ---
+def getPlayers():
+    for player in Players:
+        print(player)
         
+def getPlayer(playerName=None, Index=None):
+    if playerName != None:
+        for p in Players:
+            if p.PlayerName.lower() == playerName.lower():
+                return p
+    if Index != None:
+        return Players[Index]
+    else:
+        return NotImplementedError
+
+def tryInput(message="", ValType=int):
+    while True:
+        try:
+            return ValType(input(message))
+        except ValueError:
+            print("Invalid type. Please try again.")
+#endregion --- Helper Functions ---
+
+#region --- Calculation Functions ---
+def basicCombat(atkShips:int=0, atkWeap:int=0, defShips:int=0, defWeap:int=0, paramArray=None, ShowCombatLogs=True):
+    # Input Translation
+    if paramArray != None:
+        atkShips = paramArray[0].inputValue
+        atkWeap = paramArray[1].inputValue
+        defShips = paramArray[2].inputValue
+        defWeap = paramArray[3].inputValue
+    
+    # Defender Bonus
+    defWeap = defWeap+1 
+
+    # Create Entities
+    attacker = CombatEntity(atkShips, atkWeap, "Attacker")
+    defender = CombatEntity(defShips, defWeap, "Defender")
+    
+    if(debug):
+        print("Attacker")
+        print(attacker)
+        print("Defender")
+        print(defender)
+    
+    # Combat Loop
+    while defender.isAlive() and attacker.isAlive():
+        if defender.isAlive():
+            attacker.takeHit(defender.doAttack())
+            if debug: print(f'DEBUG | Attacker Ships Remaining: {attacker.ships:.2f}')
+        if attacker.isAlive():
+            defender.takeHit(attacker.doAttack())
+            if debug: print(f'DEBUG | Defender Ships Remaining: {defender.ships:.2f}')
+        else:
+            if ShowCombatLogs: defender.winString()
+            return defender
+            # print(f'\nDefender wins with {defender.ships:.2f} ships remaining!')
+        if not defender.isAlive():
+            if ShowCombatLogs: attacker.winString()
+            return attacker
+            # print(f'\nAttacker wins with {attacker.ships:.2f} ships remaining!')
+
+def shipsToWin(DefShips:int, DefWeap:int, AtkWeap:int, Print=True):
+    StarterAtkShips = ((DefShips * (DefWeap+1)) // AtkWeap) + (DefWeap+1) #Thanks Coret
+    
+    while True:
+        winner = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
+        if (type(winner)==CombatEntity):
+            if winner.title == "Defender": #Defender Wins. Try Again.
+                if Print: print(f"[{StarterAtkShips}] + {AtkWeap} = {StarterAtkShips+AtkWeap}")
+                StarterAtkShips += AtkWeap
+            else: # Attacker Wins. Return Ship Margin of Victory.
+                if Print: print(f"It took around {StarterAtkShips} Ships to Win!")
+                winMargin = basicCombat(StarterAtkShips, AtkWeap, DefShips, DefWeap,ShowCombatLogs=Print)
+                if (type(winMargin)==CombatEntity):
+                    SingleShipRemaining = (StarterAtkShips - winMargin.ships) + 1
             
+    #         print(f"\nTherefore, the absolute minimum number of \n\
+    # ships to win is [{SingleShipRemaining}] with a single ship remaining!")
+            # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
+            return SingleShipRemaining #Should return Minimum number of ships
 
-
-def manu(industry:int=0, 
-         TechLevel:int=0, 
-         currentShips:int=0, 
-         planLevel:int=0, 
-         paramArray=None, 
-         returnPerTick=False):
+def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, paramArray=None, returnPerTick=False):
     if(paramArray != None):
         
         industry = paramArray[0].inputValue
@@ -486,8 +536,7 @@ def manu(industry:int=0,
     Ships in {planLevel} days:        \t{EstimatedShips}
     """
         print(printString)
-    if returnPerTick:
-        return perTick 
+    return perTick 
 
 def planResearch(paramArray):
     TotalScience = paramArray[0].inputValue
@@ -515,11 +564,7 @@ def planResearch(paramArray):
         print(f"Level {loopLevel+1}:\t{simplifyHours(hoursThisLevel, True)} \t\t| {simplifyHours(totalHours, True)}")
     print("_"*55)
 
-def researchTime(TotalScience, \
-                 CurrentLevel, \
-                 CurrentExp ,\
-                 blessing=None,\
-                 PrintStr=True):
+def researchTime(TotalScience,CurrentLevel,CurrentExp,blessing=None,PrintStr=True):
     CostRate = 144
 
     if blessing ==  None:
@@ -546,6 +591,7 @@ Level {CurrentLevel+3}:\t{EstimatedHours+researchTime(TotalScience,CurrentLevel+
 """
         print(OutputString)
     return EstimatedHours
+#endregion --- Calculation Functions ---
 
 #region --- Formatting Functions ---
 def simplifyHours(hours, dayFormatting=False):
@@ -583,4 +629,7 @@ def simplifyDays(days):
     hours = days*24
     return simplifyHours(hours)
 #endregion --- Formatting Functions ---
+
+#endregion -- FUNCTIONS --
+
 menu()
