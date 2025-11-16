@@ -194,7 +194,7 @@ class AttackPlanEntity:
         self.suggestedShipsToWin = shipsToWin(shipsAtArrival, self.DefenderPlayer.Weapons+1, self.AttackerPlayer.Weapons, False)
 
     def __str__(self):
-        return f"{self.suggestedShipsToWin}\t{self.minShipsToWin}\t{self.timeToArrive}\t{self.shipsAtArrival}\t{self.starName}[W{self.DefenderPlayer.Weapons}]"
+        return f"{self.suggestedShipsToWin}\t\t{self.minShipsToWin}\t{self.timeToArrive}\t{self.shipsAtArrival}\t{self.starName}[W{self.DefenderPlayer.Weapons}]"
 
 #endregion -- Class Definitions --
 
@@ -345,7 +345,7 @@ For each attack, need Distance, Industry, and Ships.
 [Uses Player Settings!]
 {20*'*'}
 """)
-        AttacksToPlan = InputParameter("How many Attacks to coordinate?", int, 1).tryInput()
+        AttacksToPlan = InputParameter("How many Attacks to coordinate? ", int, 1).tryInput()
         
         AllAttacks = []
         for a in range(AttacksToPlan):
@@ -354,13 +354,16 @@ For each attack, need Distance, Industry, and Ships.
             ticks = InputParameter("How many hours till arrival: ").tryInput()
             industry = InputParameter("Star's Total Industry: ").tryInput()
             starShips = InputParameter("Star's Current Ships: ").tryInput()
+            print()
             initialPlan = AttackPlanEntity(starName, ticks, industry, starShips, DEFENDER, ATTACKER)
             AllAttacks.append(initialPlan)
 #return f"{self.suggestedShipsToWin}\t{self.minShipsToWin}\t{self.timeToArrive}\t{self.shipsAtArrival}\t{self.starName}[W{self.DefenderPlayer.Weapons}]"
-        LongestAttack = None
-        print("Suggested | MinShips | ETA | AtArrival | Star Name[Weapon]")
+        LongestAttack = None 
+        print(60*"*")
+        print("Tech + 1 | MinShips | ETA | AtArrival |  Star Name[Weapon]")
         for Attack in AllAttacks:
             print(Attack)
+        print(60*"*")
         # get max distance from set.
         # go through each attack - modify delay to account for longest
         # run simulations based on delay
