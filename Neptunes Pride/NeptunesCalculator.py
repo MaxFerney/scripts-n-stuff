@@ -203,7 +203,7 @@ class AttackPlanEntity:
 debug = False
 Players = [
     Player("Dovah Kro",
-           33,22,49,23,37,
+           33,22,52,23,39,
            1828,1423,607),
     Player("HelloLuke",
            23,18,24,16,34,
@@ -212,8 +212,11 @@ Players = [
            23,19,25,15,24,
            1224,975,226),
     Player("AlbertMungus",
-           39,22,44,19,35,
-           603,982,255)
+           39,22,51,19,36,
+           603,982,255),
+    Player("Earthworm Jim",
+           35,23,51,19,36,
+           3551,2564,513)
 ]
 #endregion -- Global Definitions --
 
@@ -225,7 +228,7 @@ def menu():
     ATTACKER = Players[0]
     print("#"*20)
     print(f"Attacker: {ATTACKER.PlayerName}")
-    DEFENDER = Players[3]
+    DEFENDER = Players[4]
     print(f"Defender: {DEFENDER.PlayerName}")
     print("#"*20)
     #endregion ---- Initial Display ----
