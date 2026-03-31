@@ -263,7 +263,7 @@ def loadPlayers(inputData):
 
 ApiString = f'https://np.ironhelmet.com/api?game_number={GAMEID}&code={APIKEY}'
 mainData = fetchData(ApiString)
-print(json.dumps(mainData, indent=4))
+# print(json.dumps(mainData, indent=4))
 
 # API mapping for research indexes
 RESEARCH_INDEXES={ #0, 0 is no blessing
@@ -317,13 +317,8 @@ def menu():
     #endregion ---- Initial Display ----
     
     #region ---- input functions ----
-    def PlayerInput():
-        newPlayer = Player()
-        newPlayer.InputInfo()
-        newPlayer.InputResearch()
-        newPlayer.InputTotals()
-        Players.append(newPlayer)
-    
+    def ListPlayers():
+        getPlayers()
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         params = [
@@ -338,23 +333,32 @@ def menu():
         manu(paramArray=params)
         
     def researchInput():
-        print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
+        print("Player selection or manual input?")
+        InputParameter("Player Section? ([y]/n)", str, 'y').tryInput()
         
-        params = [
-            InputParameter("Total Science: "), #Science
-            InputParameter("Current Tech Level: "), #Research
-            InputParameter("Current Exp toward next level: ", int, 0), #Experience Points
-            InputParameter("""
-            Blessings (aka, Strengths/Weaknesses)
-              [0] - No bonuses
-              [1] - Strength (it's cheaper to research this)
-              [2] - Weakness (it cost more to research this)
-Blessing: """, int, 0), #Racial Trait
-            InputParameter("How many levels to plan for? ", int, 1)
-        ]
-        for p in params:
-            p.tryInput()
-        planResearch(params)
+        if InputParameter.inputValue == 'y':
+            for p in Players:
+                isSelfPlayer = p.PlayerId == SELF_PLAYER.PlayerId
+                print(f"{Players.index(p)}: {p.PlayerName} { '(You)' if isSelfPlayer else '' }")
+            pass
+        else: 
+            print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
+            
+            params = [
+                InputParameter("Total Science: "), #Science
+                InputParameter("Current Tech Level: "), #Research
+                InputParameter("Current Exp toward next level: ", int, 0), #Experience Points
+                InputParameter("""
+                Blessings (aka, Strengths/Weaknesses)
+                [0] - No bonuses
+                [1] - Strength (it's cheaper to research this)
+                [2] - Weakness (it cost more to research this)
+    Blessing: """, int, 0), #Racial Trait
+                InputParameter("How many levels to plan for? ", int, 1)
+            ]
+            for p in params:
+                p.tryInput()
+            planResearch(params)
         
     def combatInput():
         print('Standard combat')
@@ -480,7 +484,7 @@ For each attack, need Distance, Industry, and Ships.
               [1] Research
               [2] Basic Combat Calculator
               [3] Distance Based Combat Calculator
-              [4] Player Input (WIP)
+              [4] List Players
               [5] Role Input (WIP) (who is attacker or defender)
               [6] Ships To Conquer
               [7] Attack Planner
@@ -503,7 +507,7 @@ For each attack, need Distance, Industry, and Ships.
             if menuInput ==  3:
                 combatWithDistance()
             if menuInput ==  4:
-                PlayerInput()
+                ListPlayers()
             if menuInput ==  5:
                 roleInput()
             if menuInput ==  6:
@@ -543,6 +547,15 @@ def getPlayer(playerName=None, Index=None) -> Player:
         raise NotImplementedError("No valid input provided for player retrieval.")
 
 def tryInput(message="", ValType=int):
+    """Attempts to get a valid input of a specified type from the user. Repeats until a valid input is received.
+
+    Args:
+        message (str, optional): Message for the input. Defaults to "".
+        ValType (_type_, optional): Type of the input value. Defaults to int.
+
+    Returns:
+        _type_: The input value of the specified type (ValType).
+    """
     while True:
         try:
             return ValType(input(message))
