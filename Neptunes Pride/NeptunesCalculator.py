@@ -1,11 +1,20 @@
 #region imports
 import math
+import requests #`pip install requests`. make sure you select the correct interpreter.
+import json
+import configparser
 #endregion imports
 
-global debug, Players
+global debug, Players, GAMEID, APIKEY
+
+#region -- API Connection Setup --
+config = configparser.ConfigParser()
+config.read('Neptunes Pride/GameConfig.ini')
+GAMEID = config.get('CONNECTION', 'GameId')
+APIKEY = config.get('CONNECTION', 'ApiKey')
+#endregion -- API Connection Setup --
 
 #region -- Class Definitions --
-
 # Stores player stats to cut down on number of inputs.
 class Player:
     PlayerName:str = "Player Name"
@@ -14,6 +23,10 @@ class Player:
     Manufacturing = 1
     Range = 1
     Weapons = 1
+    Terraforming = 1
+    
+    TotalStars = 1
+    TotalFleets = 1
     
     TotalEconomy = 1
     TotalScience = 1
@@ -27,7 +40,10 @@ class Player:
                  weap=1,
                  TotalEco=1,
                  TotalInd=1,
-                 TotalSci=1):
+                 TotalSci=1,
+                 totalFleets=1,
+                 totalStars=1,
+                 terra=1):
         self.PlayerName = name
         self.Banking = bank
         self.Experimentation = exp
@@ -37,6 +53,9 @@ class Player:
         self.TotalEconomy = TotalEco
         self.TotalIndustry = TotalInd
         self.TotalScience = TotalSci
+        self.TotalStars = totalStars
+        self.TotalFleets = totalFleets
+        self.Terraforming = terra
     
     def InputResearch(self):
         self.Banking = InputParameter("Banking Level: ", int, 1).tryInput()
@@ -67,6 +86,9 @@ class Player:
     Total Economy:      {self.TotalEconomy}
     Total Industry:     {self.TotalIndustry}
     Total Science:      {self.TotalScience}
+    
+    Total Stars:        {self.TotalStars}
+    Total Fleets:       {self.TotalFleets}
     ====================================
     """
 
@@ -198,6 +220,55 @@ class AttackPlanEntity:
 
 #endregion -- Class Definitions --
 
+#region -- Data Loading --
+def fetchData(api):
+    return json.loads(requests.get(api).text)
+
+def loadPlayers(inputData):
+    playerArray = inputData['scanning_data']['players']
+    outputArray = []
+    numPlayers = inputData['scanning_data']['config']['players']
+    # print(playerArray)
+    for playerNum in range(1,numPlayers+1):
+        playerInfo = playerArray[str(playerNum)]
+        # print(json.dumps(playerInfo, indent=4))
+        
+        
+        player = Player (
+            name=playerInfo['alias'],
+            TotalEco=playerInfo['totalEconomy'],
+            TotalInd=playerInfo['totalIndustry'],
+            TotalSci=playerInfo['totalScience'],
+            totalFleets=playerInfo['totalFleets'],
+            totalStars=playerInfo['totalStars'],
+            bank=playerInfo['tech']['0']['level'],
+            exp=playerInfo['tech']['1']['level'],
+            manu=playerInfo['tech']['2']['level'],
+            range=playerInfo['tech']['3']['level'],
+            weap=playerInfo['tech']['5']['level'],
+            terra=playerInfo['tech']['6']['level'],
+        )
+        print(player)
+        outputArray.append(player)
+        
+    return outputArray
+
+ApiString = f'https://np.ironhelmet.com/api?game_number={GAMEID}&code={APIKEY}'
+mainData = fetchData(ApiString)
+# print(json.dumps(testData))
+
+# API mapping for research indexes
+RESEARCH_INDEXES={
+    0:'Banking',
+    1:'Experimentation',
+    2:'Manufacturing',
+    3:'Range',
+    4:'Scanning',
+    5:'Weapons',
+    6:'Terraforming',
+}
+#endregion -- Data Loading --
+
 #region -- Global Definitions --
 # Global Definitions
 debug = False
@@ -218,6 +289,9 @@ Players = [
            35,23,51,19,36,
            3551,2564,513)
 ]
+
+players = loadPlayers(mainData)
+
 #endregion -- Global Definitions --
 
 #region -- MENU --
@@ -638,4 +712,4 @@ def simplifyDays(days):
 
 #endregion -- FUNCTIONS --
 
-menu()
+# menu()
