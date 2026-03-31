@@ -5,7 +5,7 @@ import json
 import configparser
 #endregion imports
 
-global debug, Players, GAMEID, APIKEY
+global debug, Players, GAMEID, APIKEY, SELF_PLAYER
 
 #region -- API Connection Setup --
 config = configparser.ConfigParser()
@@ -18,6 +18,7 @@ APIKEY = config.get('CONNECTION', 'ApiKey')
 # Stores player stats to cut down on number of inputs.
 class Player:
     PlayerName:str = "Player Name"
+    PlayerId:int = 0
     Banking = 1
     Experimentation = 1
     Manufacturing = 1
@@ -43,7 +44,8 @@ class Player:
                  TotalSci=1,
                  totalFleets=1,
                  totalStars=1,
-                 terra=1):
+                 terra=1,
+                 playerId=0):
         self.PlayerName = name
         self.Banking = bank
         self.Experimentation = exp
@@ -56,6 +58,7 @@ class Player:
         self.TotalStars = totalStars
         self.TotalFleets = totalFleets
         self.Terraforming = terra
+        self.PlayerId = playerId
     
     def InputResearch(self):
         self.Banking = InputParameter("Banking Level: ", int, 1).tryInput()
@@ -75,13 +78,14 @@ class Player:
     def __str__(self):
         return f"""
     ====================================
-    Player Overview: [{self.PlayerName}]
+    Player Overview: [{self.PlayerName}] [ID: {self.PlayerId}]
     
     Banking:            {self.Banking}
     Experimentation:    {self.Experimentation}
     Manufacturing:      {self.Manufacturing}
     Range:              {self.Range}
     Weapons:            {self.Weapons}
+    Terraforming:       {self.Terraforming}
     
     Total Economy:      {self.TotalEconomy}
     Total Industry:     {self.TotalIndustry}
@@ -225,15 +229,15 @@ def fetchData(api):
     return json.loads(requests.get(api).text)
 
 def loadPlayers(inputData):
+    global SELF_PLAYER
     playerArray = inputData['scanning_data']['players']
     outputArray = []
     numPlayers = inputData['scanning_data']['config']['players']
-    # print(playerArray)
+    Self_player_id = inputData['scanning_data']['playerUid']
     for playerNum in range(1,numPlayers+1):
         playerInfo = playerArray[str(playerNum)]
-        # print(json.dumps(playerInfo, indent=4))
         
-        
+        # print(playerInfo['uid'], playerInfo['alias'], playerInfo['race'])
         player = Player (
             name=playerInfo['alias'],
             TotalEco=playerInfo['totalEconomy'],
@@ -247,62 +251,67 @@ def loadPlayers(inputData):
             range=playerInfo['tech']['3']['level'],
             weap=playerInfo['tech']['5']['level'],
             terra=playerInfo['tech']['6']['level'],
+            playerId=playerInfo['uid']
         )
-        print(player)
+        if playerInfo['uid'] == Self_player_id:
+            SELF_PLAYER = player
+            print(json.dumps(playerInfo, indent=4))
+            # print(SELF_PLAYER)
         outputArray.append(player)
         
     return outputArray
 
 ApiString = f'https://np.ironhelmet.com/api?game_number={GAMEID}&code={APIKEY}'
 mainData = fetchData(ApiString)
-# print(json.dumps(testData))
+print(json.dumps(mainData, indent=4))
 
 # API mapping for research indexes
-RESEARCH_INDEXES={
-    0:'Banking',
-    1:'Experimentation',
-    2:'Manufacturing',
-    3:'Range',
-    4:'Scanning',
-    5:'Weapons',
-    6:'Terraforming',
+RESEARCH_INDEXES={ #0, 0 is no blessing
+    0:'Banking', #4, cheap banking. 11 costly banking.
+    1:'Experimentation', #6, cheap exp. 13 costly exp.
+    2:'Manufacturing', #5, cheap manu. 12 costly manu.
+    3:'Range', #2, cheap range. 9, costly range.
+    4:'Scanning', #3, cheap scanning. 10, costly scanning.
+    5:'Weapons', #1, cheap weap. 8, costly weap.
+    6:'Terraforming', #7: cheap terra. 14: costly terra. 
 }
 #endregion -- Data Loading --
 
 #region -- Global Definitions --
 # Global Definitions
 debug = False
-Players = [
-    Player("Dovah Kro",
-           33,22,52,23,39,
-           1828,1423,607),
-    Player("HelloLuke",
-           23,18,24,16,34,
-           1224,975,226),
-    Player("Homeless man",
-           23,19,25,15,24,
-           1224,975,226),
-    Player("AlbertMungus",
-           39,22,51,19,36,
-           603,982,255),
-    Player("Earthworm Jim",
-           35,23,51,19,36,
-           3551,2564,513)
-]
+# Players = [
+#     Player("Dovah Kro",
+#            33,22,52,23,39,
+#            1828,1423,607),
+#     Player("HelloLuke",
+#            23,18,24,16,34,
+#            1224,975,226),
+#     Player("Homeless man",
+#            23,19,25,15,24,
+#            1224,975,226),
+#     Player("AlbertMungus",
+#            39,22,51,19,36,
+#            603,982,255),
+#     Player("Earthworm Jim",
+#            35,23,51,19,36,
+#            3551,2564,513)
+# ]
 
-players = loadPlayers(mainData)
+Players = loadPlayers(mainData)
 
 #endregion -- Global Definitions --
 
 #region -- MENU --
 
 def menu():
+    global ATTACKER, DEFENDER
     #region ---- Initial Display ----
     keepRunningMenu = True
-    ATTACKER = Players[0]
+    ATTACKER = SELF_PLAYER
     print("#"*20)
     print(f"Attacker: {ATTACKER.PlayerName}")
-    DEFENDER = Players[4]
+    DEFENDER = Players[0]
     print(f"Defender: {DEFENDER.PlayerName}")
     print("#"*20)
     #endregion ---- Initial Display ----
@@ -400,13 +409,15 @@ Blessing: """, int, 0), #Racial Trait
         basicCombat(shipsToConquer, AttackerWeaps, shipsAtArrival, weapLevel)
         
     def roleInput():
-        global attacker, defender
+        global ATTACKER, DEFENDER
         getPlayers()
         print("Players [Index] | Player Name")
         for index, p in enumerate(Players):
             print(f"[{index}] | {p.PlayerName}")
-        attacker = getPlayer(Index=InputParameter("Attacker | Player Index: ", int).tryInput())
-        defender = getPlayer(Index=InputParameter("Defender | Player Index: ", int).tryInput())
+        ATTACKER = getPlayer(Index=InputParameter("Attacker | Player Index: ", int).tryInput())
+        DEFENDER = getPlayer(Index=InputParameter("Defender | Player Index: ", int).tryInput())
+        
+        print(f"Attacker: {ATTACKER.PlayerName} | Defender: {DEFENDER.PlayerName}")
     
     def shipsToAttackInput():
         defShip = InputParameter("Defender's Total Ships: ").tryInput() 
@@ -511,8 +522,17 @@ For each attack, need Distance, Industry, and Ships.
 def getPlayers():
     for player in Players:
         print(player)
-        
-def getPlayer(playerName=None, Index=None):
+
+
+def getPlayer(playerName=None, Index=None) -> Player:
+    """Retrieves the player object from the game state.
+    
+    Returns:
+        Player: The active player instance, or None if no player is initialized.
+    
+    Raises:
+        NotImplementedError: If player data is corrupted.
+    """
     if playerName != None:
         for p in Players:
             if p.PlayerName.lower() == playerName.lower():
@@ -520,7 +540,7 @@ def getPlayer(playerName=None, Index=None):
     if Index != None:
         return Players[Index]
     else:
-        return NotImplementedError
+        raise NotImplementedError("No valid input provided for player retrieval.")
 
 def tryInput(message="", ValType=int):
     while True:
@@ -712,4 +732,4 @@ def simplifyDays(days):
 
 #endregion -- FUNCTIONS --
 
-# menu()
+menu()
