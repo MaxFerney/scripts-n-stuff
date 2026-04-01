@@ -25,6 +25,8 @@ class Player:
     Range = 1
     Weapons = 1
     Terraforming = 1
+    RaceInfo = [0, 0]
+    RawResearchInfo:object = None
     
     TotalStars = 1
     TotalFleets = 1
@@ -45,7 +47,9 @@ class Player:
                  totalFleets=1,
                  totalStars=1,
                  terra=1,
-                 playerId=0):
+                 playerId=0,
+                 raceInfo=[0, 0],
+                 rawResearchInfo=None):
         self.PlayerName = name
         self.Banking = bank
         self.Experimentation = exp
@@ -59,6 +63,8 @@ class Player:
         self.TotalFleets = totalFleets
         self.Terraforming = terra
         self.PlayerId = playerId
+        self.RaceInfo = raceInfo
+        self.RawResearchInfo = rawResearchInfo
     
     def InputResearch(self):
         self.Banking = InputParameter("Banking Level: ", int, 1).tryInput()
@@ -74,6 +80,10 @@ class Player:
     
     def InputInfo(self):
         self.PlayerName = InputParameter("PlayerName").tryInput()
+    
+    def GetTechInfo(self, techIdentifier:int):
+        selectedTech = self.RawResearchInfo[str(techIdentifier)] # pyright: ignore[reportIndexIssue]
+        return selectedTech
     
     def __str__(self):
         return f"""
@@ -237,7 +247,7 @@ def loadPlayers(inputData):
     for playerNum in range(1,numPlayers+1):
         playerInfo = playerArray[str(playerNum)]
         
-        # print(playerInfo['uid'], playerInfo['alias'], playerInfo['race'])
+        # print(playerInfo['race'])
         player = Player (
             name=playerInfo['alias'],
             TotalEco=playerInfo['totalEconomy'],
@@ -251,10 +261,13 @@ def loadPlayers(inputData):
             range=playerInfo['tech']['3']['level'],
             weap=playerInfo['tech']['5']['level'],
             terra=playerInfo['tech']['6']['level'],
-            playerId=playerInfo['uid']
+            playerId=playerInfo['uid'],
+            raceInfo=playerInfo['race'],
+            rawResearchInfo=playerInfo['tech']
         )
-        if playerInfo['uid'] == Self_player_id:
+        if playerInfo['uid'] == Self_player_id: #or playerInfo['uid'] == 3 or playerInfo['uid'] == 4:
             SELF_PLAYER = player
+            print("------ SELF INFORMATION ------")
             print(json.dumps(playerInfo, indent=4))
             # print(SELF_PLAYER)
         outputArray.append(player)
@@ -271,10 +284,20 @@ RESEARCH_INDEXES={ #0, 0 is no blessing
     1:'Experimentation', #6, cheap exp. 13 costly exp.
     2:'Manufacturing', #5, cheap manu. 12 costly manu.
     3:'Range', #2, cheap range. 9, costly range.
-    4:'Scanning', #3, cheap scanning. 10, costly scanning.
+    # 4:'Scanning', #3, cheap scanning. 10, costly scanning.
     5:'Weapons', #1, cheap weap. 8, costly weap.
     6:'Terraforming', #7: cheap terra. 14: costly terra. 
 }
+
+RESEARCH_TUPLES = [
+    ('Banking', 0, 4, 11),
+    ('Experimentation', 1, 6, 13),
+    ('Manufacturing', 2, 5, 12),
+    ('Range', 3, 2, 9),
+    # ('Scanning', 4, 3, 10),
+    ('Weapons', 5, 1, 8),
+    ('Terraforming', 6, 7, 14)
+]
 #endregion -- Data Loading --
 
 #region -- Global Definitions --
@@ -304,21 +327,34 @@ Players = loadPlayers(mainData)
 
 #region -- MENU --
 
+
 def menu():
     global ATTACKER, DEFENDER
     #region ---- Initial Display ----
     keepRunningMenu = True
     ATTACKER = SELF_PLAYER
-    print("#"*20)
-    print(f"Attacker: {ATTACKER.PlayerName}")
-    DEFENDER = Players[0]
-    print(f"Defender: {DEFENDER.PlayerName}")
-    print("#"*20)
+    # print("#"*20)
+    # print(f"Attacker: {ATTACKER.PlayerName}")
+    # DEFENDER = None
+    # # print(f"Defender: {DEFENDER.PlayerName}")
+    # print("#"*20)
     #endregion ---- Initial Display ----
     
     #region ---- input functions ----
+    #region -- List Players --
     def ListPlayers():
         getPlayers()
+    #endregion -- List Players --
+    
+    #region -- Refresh Data --
+    def refreshData():
+        global Players
+        mainData = fetchData(ApiString)
+        Players = loadPlayers(mainData)
+        print("Data Refreshed!")
+    #endregion -- Refresh Data --
+    
+    #region -- Manu Input --
     def manuInput():
         print("Input the total manufacturing for a star, and the technology level.")
         params = [
@@ -331,16 +367,60 @@ def menu():
         for p in params:
             p.tryInput()
         manu(paramArray=params)
-        
+    #endregion -- Manu Input --
+    
+    #region -- Research Input --
     def researchInput():
         print("Player selection or manual input?")
-        InputParameter("Player Section? ([y]/n)", str, 'y').tryInput()
+        playerSelection = InputParameter("Player Section? ([y]/n)", str, 'y').tryInput()
         
-        if InputParameter.inputValue == 'y':
+        if playerSelection == 'y':
+            
+            # Select Player
+            print("\nPlayers [Index]: Name")
             for p in Players:
                 isSelfPlayer = p.PlayerId == SELF_PLAYER.PlayerId
-                print(f"{Players.index(p)}: {p.PlayerName} { '(You)' if isSelfPlayer else '' }")
-            pass
+                print(f"[{Players.index(p)}]: {p.PlayerName} { '(You)' if isSelfPlayer else '' }")
+            playerIndex = InputParameter("\nSelect Player by Index: ", int).tryInput()
+            SelectedPlayer = Players[playerIndex]
+            
+            # Select Research Type
+            print("\nResearch Types [Index] | Type Name")
+            for r in RESEARCH_TUPLES:
+                print(f"[{RESEARCH_TUPLES.index(r)}] | {r[0]}")
+            researchIndex = InputParameter("\nSelect Research Type by Index: ", int).tryInput()
+            selectedResearch = RESEARCH_TUPLES[researchIndex]
+            
+            # {'kind': 3, 'level': 1, 'research': 121, 'cost': 144}
+            PlayerResearchInfo = SelectedPlayer.GetTechInfo(selectedResearch[1])
+            PlayerTotalScience = SelectedPlayer.TotalScience            
+            currentResearchLevel = PlayerResearchInfo['level']
+            
+            # Current research experience - if not found nor input, default to 0.
+            try:
+                currentResearchExp = PlayerResearchInfo['research']
+            except KeyError:
+                currentResearchExp = InputParameter("Current Exp toward next level: ", int, 0).tryInput()
+            
+            # Blessing Logic            
+            if SelectedPlayer.RaceInfo[0] == selectedResearch[2]: # if the player's blessing matches the research type
+                blessing = 1 # strength
+            elif SelectedPlayer.RaceInfo[1] == selectedResearch[3]: # if the player's weakness matches the research type
+                blessing = 2 # weakness
+            else:
+                blessing = 0 # no blessing
+            
+            plannedLevels = InputParameter("How many levels to plan for? ", int, 1).tryInput()
+            
+            params = [
+                InputParameter('', int, PlayerTotalScience),
+                InputParameter('', int, currentResearchLevel),
+                InputParameter('', int, currentResearchExp),
+                InputParameter('', int, blessing),
+                InputParameter('', int, plannedLevels)
+            ]
+            
+            planResearch(params)
         else: 
             print("input the Total amount of science, current tech level, xp toward next level, Strength/weakness, and how many levels to estimate")
             
@@ -359,7 +439,9 @@ def menu():
             for p in params:
                 p.tryInput()
             planResearch(params)
-        
+    #endregion -- Research Input --
+    
+    #region -- Combat Input --
     def combatInput():
         print('Standard combat')
         params = [
@@ -371,13 +453,16 @@ def menu():
         for p in params:
             p.tryInput()
         basicCombat(paramArray=params)
-        
+    #endregion -- Combat Input --
+    
+    #region -- Combat With Distance Input --
     def combatWithDistance():
         pSet = False
         # Input
-        UsePlayerSettings = InputParameter("Use Player Settings? ([y]/n)",str,'y').tryInput()
-        if UsePlayerSettings == 'y':
-            pSet = True
+        if DEFENDER != None and ATTACKER != None:
+            UsePlayerSettings = InputParameter("Use Player Settings? ([y]/n)",str,'y').tryInput()
+            if UsePlayerSettings == 'y':
+                pSet = True
         print("Calculate how many ships will be built by the time of arrival.")
         ticks = InputParameter("How many hours till arrival: ").tryInput()
         industry = InputParameter("Star's Total Industry: ").tryInput()
@@ -385,8 +470,8 @@ def menu():
             manuLevel = InputParameter("Star's Manufacturing Level: ").tryInput()
             weapLevel = InputParameter("Star's Weapons Level: ").tryInput()
         else:
-            manuLevel = DEFENDER.Manufacturing
-            weapLevel = DEFENDER.Weapons
+            manuLevel = DEFENDER.Manufacturing # pyright: ignore[reportOptionalMemberAccess]
+            weapLevel = DEFENDER.Weapons # pyright: ignore[reportOptionalMemberAccess]
         starShips = InputParameter("Star's Current Ships: ").tryInput()
         # Calculate Combat Too?
         
@@ -411,7 +496,9 @@ def menu():
 """)
         print(30*'v')
         basicCombat(shipsToConquer, AttackerWeaps, shipsAtArrival, weapLevel)
-        
+    #endregion -- Combat With Distance Input --
+    
+    #region -- Role Input --
     def roleInput():
         global ATTACKER, DEFENDER
         getPlayers()
@@ -422,15 +509,24 @@ def menu():
         DEFENDER = getPlayer(Index=InputParameter("Defender | Player Index: ", int).tryInput())
         
         print(f"Attacker: {ATTACKER.PlayerName} | Defender: {DEFENDER.PlayerName}")
+        print(ATTACKER)
+        print(DEFENDER)
+    #endregion -- Role Input --
     
+    #region -- Ships To Attack Input --
     def shipsToAttackInput():
         defShip = InputParameter("Defender's Total Ships: ").tryInput() 
         defWeap = InputParameter("Defender's Weapons Level: ").tryInput() 
         atkWeap = InputParameter("Attacker's Weapons Level: ").tryInput()
         
         shipsToWin(defShip,defWeap,atkWeap)
+    #endregion -- Ships To Attack Input --
     
+    #region -- Attack Planner --
     def attackPlanner():
+        if DEFENDER == None and ATTACKER == None:
+            print("Please set Attacker and Defender roles in the [5] Role Input menu before using the Attack Planner.")
+            return
         print(f"""
 {20*'*'}
 For each attack, need Distance, Industry, and Ships.
@@ -462,6 +558,8 @@ For each attack, need Distance, Industry, and Ships.
             #this can be handled within the AttackPlanEntity class
         # display grid of finalized calculations (stored in each attack entity)
             #custom function to do a 1 line print for loop display.
+    #endregion -- Attack Planner --
+    
     #endregion ---- input functions ----
     
     #region ---- menu loop ----
@@ -480,39 +578,42 @@ For each attack, need Distance, Industry, and Ships.
 --------------{20*'-'}
               Select a menu option.
               
+              [r] Refetch Data from API
               [0] Manufacturing
               [1] Research
               [2] Basic Combat Calculator
               [3] Distance Based Combat Calculator
               [4] List Players
-              [5] Role Input (WIP) (who is attacker or defender)
+              [5] Role Input (attacker and defender)
               [6] Ships To Conquer
               [7] Attack Planner
               WIP - How many ships needed to conquer
               """)
         
         try:
-            menuInput = tryInput("Menu Option: ")
+            menuInput = tryInput("Menu Option: ", str) # pyright: ignore[reportArgumentType]
         except KeyboardInterrupt:
             print("Leaving the main function.")
             keepRunningMenu = False
             return
         try:
-            if menuInput ==  0:
+            if menuInput ==  'r':
+                refreshData()
+            if menuInput ==  '0':
                 manuInput()
-            if menuInput ==  1:
+            if menuInput ==  '1':
                 researchInput()
-            if menuInput ==  2:
+            if menuInput ==  '2':
                 combatInput()
-            if menuInput ==  3:
+            if menuInput ==  '3':
                 combatWithDistance()
-            if menuInput ==  4:
+            if menuInput ==  '4':
                 ListPlayers()
-            if menuInput ==  5:
+            if menuInput ==  '5':
                 roleInput()
-            if menuInput ==  6:
+            if menuInput ==  '6':
                 shipsToAttackInput()
-            if menuInput ==  7:
+            if menuInput ==  '7':
                 attackPlanner()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
