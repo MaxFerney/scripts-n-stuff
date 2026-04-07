@@ -214,9 +214,11 @@ class AttackPlanEntity:
         if(Manu==None):
             Manu = self.DefenderPlayer.Manufacturing
         # Calculation
-        perTick:int = int(manu(self.planetIndustry, Manu, 0, 0, None, True))
+        perTick:float = float(manu(self.planetIndustry, Manu, 0, 0, None, True))
         # Defender Ships at Arrival
-        shipsAtArrival = self.planetShips + (perTick*self.timeToArrive)
+        actualShipsPerTick = perTick*self.timeToArrive
+        roundedShipsPerTick = math.ceil(actualShipsPerTick)
+        shipsAtArrival = self.planetShips + roundedShipsPerTick
         return shipsAtArrival
 
     # Estimate minimum ships to win
@@ -564,16 +566,6 @@ For each attack, need Distance, Industry, and Ships.
     
     #region ---- menu loop ----
     while keepRunningMenu == True:
-#         print("""
-# #name: ships industry hours (delay hours) shipsToSend #ROUTE
-# #death sweet embrace: 912 11 20 (x) 900
-# #small child: 205 7 24 (x) 350 #DEATH
-# #alamo: 2735 7 16 (x) 2050.0
-# #college: 4838 10 17 (x) 3600.0
-# #low star: 191 2 24 (x) 200.0 #COMMUNITY
-# #runecrafting: 3898 10 29 (x) 3000.0 #COMMUNITY
-# #doodlebros: 650 10 29 (x) 750.0 #DEATH
-# """)
         print(f"""
 --------------{20*'-'}
               Select a menu option.
@@ -721,9 +713,9 @@ def shipsToWin(DefShips:int, DefWeap:int, AtkWeap:int, Print=True):
     #         print(f"\nTherefore, the absolute minimum number of \n\
     # ships to win is [{SingleShipRemaining}] with a single ship remaining!")
             # basicCombat(SingleShipRemaining, AtkWeap, DefShips, DefWeap,ShowCombatLogs=False)
-            return SingleShipRemaining #Should return Minimum number of ships
+                return SingleShipRemaining #Should return Minimum number of ships
 
-def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, paramArray=None, returnPerTick=False):
+def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, paramArray=None, returnPerTick=False)->float:
     if(paramArray != None):
         
         industry = paramArray[0].inputValue
