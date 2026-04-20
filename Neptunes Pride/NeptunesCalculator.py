@@ -363,7 +363,7 @@ def menu():
             InputParameter("Total Industry: "), #Industry
             InputParameter("Manufacturing Level: "), #Manu
             InputParameter("Current Ships: ", int, 0), #Ships
-            InputParameter("How many days to plan for? ", int, 1) #Days
+            InputParameter("How many hours to plan for? ", int, 1) #Hours
         ]
         
         for p in params:
@@ -716,6 +716,11 @@ def shipsToWin(DefShips:int, DefWeap:int, AtkWeap:int, Print=True):
                 return SingleShipRemaining #Should return Minimum number of ships
 
 def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, paramArray=None, returnPerTick=False)->float:
+    """
+    Manufacturing Calculator. Estimates ship production based on industry, manufacturing level, and time. 
+    Can also return just the per tick production for use in other calculations.
+    """
+    
     if(paramArray != None):
         
         industry = paramArray[0].inputValue
@@ -725,13 +730,13 @@ def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, p
     
     total = industry * (TechLevel+4)
     perTick = (total / 24)
-    EstimatedShips = total*planLevel+currentShips
+    EstimatedShips = perTick*planLevel+currentShips
     
     if not returnPerTick:
         print(f"Today : \t{currentShips} Ships")
-        for level in range(1,planLevel+1):
-            shipPerLevel = total*(level) + currentShips
-            levelStr = f"{simplifyDays(level)}: \t{shipPerLevel} Ships"
+        for timeSpan in range(1,planLevel+1):
+            shipPerLevel = perTick*(timeSpan) + currentShips
+            levelStr = f"{simplifyHours(timeSpan)}: \t{shipPerLevel:.2f} Ships"
             print(levelStr)
         
         
@@ -739,7 +744,7 @@ def manu(industry:int=0, TechLevel:int=0, currentShips:int=0, planLevel:int=0, p
     Ships Per Production Cycle: \t{total}
     Ships Per Hour Tick:        \t{perTick:.2f}
     Current Ships:              \t{currentShips}
-    Ships in {planLevel} days:        \t{EstimatedShips}
+    Ships in {planLevel} hours:        \t\t{EstimatedShips:.2f}
     """
         print(printString)
     return perTick 
