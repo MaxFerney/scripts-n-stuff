@@ -5,6 +5,9 @@ import json
 import configparser
 #endregion imports
 
+#TODO: look into investment costs on planets:
+#https://www.reddit.com/r/neptunespride/comments/2h8i5x/does_anyone_know_where_to_find_the_equations_for/
+
 global debug, Players, GAMEID, APIKEY, SELF_PLAYER
 
 #region -- API Connection Setup --
@@ -34,7 +37,6 @@ class Player:
     TotalEconomy = 1
     TotalScience = 1
     TotalIndustry = 1
-    
     def __init__(self, name="Player Name", 
                  bank=1,
                  exp=1,
