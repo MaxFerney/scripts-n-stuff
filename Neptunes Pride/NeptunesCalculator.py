@@ -524,8 +524,14 @@ def menu():
         atkWeap = InputParameter("Attacker's Weapons Level: ").tryInput()
         
         shipsToWin(defShip,defWeap,atkWeap)
-    #endregion -- Ships To Attack Input --
+    #endregion -- Ships To Attack Input --\
     
+    #region -- list carriers --
+    def listCarriers():
+        for p in Players:
+            print(f"[{p.TotalFleets}] \tfleets and \t[{p.TotalStars}] stars. Belongs to [{p.PlayerName} | ID: {p.PlayerId}]")
+    #endregion -- list carriers --
+        
     #region -- Attack Planner --
     def attackPlanner():
         if DEFENDER == None and ATTACKER == None:
@@ -581,6 +587,7 @@ For each attack, need Distance, Industry, and Ships.
               [5] Role Input (attacker and defender)
               [6] Ships To Conquer
               [7] Attack Planner
+              [8] List carriers and stars
               WIP - How many ships needed to conquer
               """)
         
@@ -609,6 +616,8 @@ For each attack, need Distance, Industry, and Ships.
                 shipsToAttackInput()
             if menuInput ==  '7':
                 attackPlanner()
+            if menuInput == '8':
+                listCarriers()
         except KeyboardInterrupt:
             print("\nEscaping inner function. Returning to menu.")
     #endregion ---- menu loop ----
